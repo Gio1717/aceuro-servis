@@ -37,6 +37,7 @@ const db   = getFirestore(app);
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
+window._fbReady = Promise.resolve();
 window._fb = { auth, db, storage, googleProvider,
   signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
   addDoc, updateDoc, doc, collection, serverTimestamp, setDoc,
@@ -1018,6 +1019,7 @@ async function loginEmail(){
   err.style.display='none';
   if(!email||!pass){showLoginErr('Vyplňte e-mail a heslo.');return;}
   btn.disabled=true;btn.textContent='Přihlašuji...';
+  if(!window._fb) return showErr('Aplikace se načítá, zkuste za chvíli.');
   try{await window._fb.signInWithEmailAndPassword(window._fb.auth,email,pass);}
   catch(e){showLoginErr(authErrMsg(e.code));btn.disabled=false;btn.textContent='Přihlásit se';}
 }
