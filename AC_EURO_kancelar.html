@@ -8,7 +8,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider,
+import { getAuth, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider,
          signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, query, orderBy, onSnapshot,
@@ -34,12 +34,15 @@ const db   = getFirestore(app);
 const gp   = new GoogleAuthProvider();
 
 window._fbReady = Promise.resolve();
-window._fb = { auth, db, gp, signInWithEmailAndPassword, signInWithPopup,
+window._fb = { auth, db, gp, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult,
   signOut, collection, query, orderBy, onSnapshot, doc, updateDoc,
   serverTimestamp, deleteDoc, addDoc, getDoc, setDoc, getDocs,
   createUserWithEmailAndPassword, updateProfile };
 
 let unsubscribe = null;
+
+// Handle Google redirect result on page load
+getRedirectResult(auth).catch(()=>{});
 
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -795,7 +798,8 @@ async function loginEmail(){
 }
 async function loginGoogle(){
   document.getElementById('lerr').style.display='none';
-  try{await window._fb.signInWithPopup(window._fb.auth,window._fb.gp);}
+  if(!window._fb){showErr('Aplikace se stále načítá, počkejte chvíli a zkuste znovu.');return;}
+  try{await window._fb.signInWithRedirect(window._fb.auth,window._fb.gp);}
   catch(e){showErr(eMsg(e.code));}
 }
 function eMsg(c){const m={'auth/invalid-credential':'Nesprávný e-mail nebo heslo.','auth/too-many-requests':'Příliš mnoho pokusů.','auth/popup-closed-by-user':'Přihlášení zrušeno.','auth/network-request-failed':'Chyba sítě.'};return m[c]||'Chyba: '+c;}

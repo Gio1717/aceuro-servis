@@ -1019,19 +1019,16 @@ async function loginEmail(){
   err.style.display='none';
   if(!email||!pass){showLoginErr('Vyplňte e-mail a heslo.');return;}
   btn.disabled=true;btn.textContent='Přihlašuji...';
-  if(!window._fb) return showErr('Aplikace se načítá, zkuste za chvíli.');
+  if(!window._fb){showLoginErr('Aplikace se stále načítá, počkejte chvíli a zkuste znovu.');btn.disabled=false;btn.textContent='Přihlásit se';return;}
   try{await window._fb.signInWithEmailAndPassword(window._fb.auth,email,pass);}
   catch(e){showLoginErr(authErrMsg(e.code));btn.disabled=false;btn.textContent='Přihlásit se';}
 }
 async function loginGoogle(){
   document.getElementById('login-err').style.display='none';
+  if(!window._fb){showLoginErr('Aplikace se stále načítá, počkejte chvíli a zkuste znovu.');return;}
   try{
-    await window._fb.signInWithPopup(window._fb.auth,window._fb.googleProvider);
+    await window._fb.signInWithRedirect(window._fb.auth,window._fb.googleProvider);
   }catch(e){
-    if(e.code==='auth/popup-blocked'){
-      const tip=document.getElementById('popup-tip');
-      if(tip)tip.style.display='block';
-    }
     showLoginErr(authErrMsg(e.code));
   }
 }
