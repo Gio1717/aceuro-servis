@@ -1,0 +1,209 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ═══════════════════════════════════════════════════
+    //  POMOCNÉ FUNKCE
+    // ═══════════════════════════════════════════════════
+
+    // Je uživatel přihlášen?
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Načti roli uživatele z kolekce users
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Je uživatel admin?
+    function isAdmin() {
+      return isAuth() && getRole() == 'admin';
+    }
+
+    // Je uživatel kancelář (jakákoli kancelářská role)?
+    function isKancelar() {
+      return isAuth() && getRole() in ['admin', 'kancelar', 'dispatcher',
+                                        'koordinator', 'fakturant'];
+    }
+
+    // Je uživatel technik nebo admin?
+    function isTechnik() {
+      return isAuth() && getRole() in ['technik', 'admin'];
+    }
+
+    // Je uživatel schválený (ne pending)?
+    function isApproved() {
+      return isAuth() && getRole() != 'pending';
+    }
+
+    // Je zakázka přiřazena tomuto technikovi?
+    function isAssignedTechnik(zakazka) {
+      return isTechnik() &&
+        (zakazka.technikUid == request.auth.uid ||
+         zakazka.technik == request.auth.token.name ||
+         zakazka.technik == request.auth.token.email);
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  UŽIVATELÉ — /users/{uid}
+    // ═══════════════════════════════════════════════════
+    match /users/{uid} {
+      // Každý přihlášený vidí svůj vlastní profil
+      allow read: if isAuth() && request.auth.uid == uid;
+      // Admin vidí všechny
+      allow read: if isAdmin();
+      // Registrace — každý může vytvořit svůj profil (role='pending')
+      allow create: if isAuth() &&
+                       request.auth.uid == uid &&
+                       request.resource.data.role == 'pending';
+      // Admin může měnit role a údaje
+      allow update: if isAdmin();
+      // Uživatel může upravit jen svůj displayName / notifEmail (ne roli)
+      allow update: if isAuth() &&
+                       request.auth.uid == uid &&
+                       !request.resource.data.diff(resource.data).affectedKeys()
+                         .hasAny(['role', 'uid']);
+      // Mazat může jen admin
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  ZAKÁZKY — /zakazky/{id}
+    // ═══════════════════════════════════════════════════
+    match /zakazky/{zakazkaId} {
+      // Kancelář vidí vše
+      allow read: if isKancelar();
+      // Technik vidí jen své přiřazené zakázky
+      allow read: if isAssignedTechnik(resource.data);
+      // Technik může vytvořit zakázku (rychlá zakázka)
+      allow create: if isApproved();
+      // Kancelář může vše upravit
+      allow update: if isKancelar();
+      // Technik může upravit jen svou zakázku (stav, prace, hodiny, km, fotky)
+      allow update: if isAssignedTechnik(resource.data) &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['stav', 'prace', 'hodiny', 'km', 'kmSazba',
+                                   'photos', 'updatedAt', 'techLat', 'techLng',
+                                   'techPolohaTs', 'casNaZakazce', 'sig1', 'sig2',
+                                   'sigDate1', 'sigDate2', 'hodnoceni', 'hodnoceniText',
+                                   'workflowNote', 'workflowUpdatedBy', 'workflowUpdatedAt']);
+      // Mazat může jen admin nebo kancelář
+      allow delete: if isKancelar();
+
+      // AUDIT LOG — /zakazky/{id}/audit/{logId}
+      match /audit/{logId} {
+        allow read: if isKancelar() || isAssignedTechnik(get(/databases/$(database)/documents/zakazky/$(zakazkaId)).data);
+        allow create: if isApproved();
+        allow update, delete: if isAdmin();
+      }
+
+      // CHAT — /zakazky/{id}/chat/{msgId}
+      match /chat/{msgId} {
+        allow read: if isKancelar() ||
+                       isAssignedTechnik(get(/databases/$(database)/documents/zakazky/$(zakazkaId)).data);
+        allow create: if isApproved() &&
+                         request.resource.data.uid == request.auth.uid;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  ZÁKAZNÍCI — /zakaznici/{id}
+    // ═══════════════════════════════════════════════════
+    match /zakaznici/{id} {
+      allow read:   if isApproved();
+      allow create: if isKancelar();
+      allow update: if isKancelar();
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  ŠABLONY — /sablony/{id}
+    // ═══════════════════════════════════════════════════
+    match /sablony/{id} {
+      allow read:   if isApproved();
+      allow write:  if isKancelar();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  CENÍK — /cenik/{id}
+    // ═══════════════════════════════════════════════════
+    match /cenik/{id} {
+      allow read:   if isApproved();
+      allow write:  if isKancelar();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  VÝKAZY PRÁCE — /vykazy/{id}
+    // ═══════════════════════════════════════════════════
+    match /vykazy/{id} {
+      allow read:   if isKancelar() ||
+                       (isAuth() && resource.data.uid == request.auth.uid);
+      allow create: if isApproved();
+      allow update: if isAdmin() ||
+                       (isAuth() && resource.data.uid == request.auth.uid &&
+                        resource.data.stav == 'odeslan');
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  HODNOCENÍ — /hodnoceni/{id}
+    //  Zákazník hodnotí bez přihlášení (public write)
+    // ═══════════════════════════════════════════════════
+    match /hodnoceni/{id} {
+      // Kancelář a technici čtou hodnocení
+      allow read: if isApproved();
+      // Zákazník může vytvořit hodnocení bez přihlášení
+      // (omezujeme jen na nezbytná pole)
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['zakazkaId', 'hvezdicky', 'text', 'jmeno', 'createdAt']
+                       ) &&
+                       request.resource.data.hvezdicky is int &&
+                       request.resource.data.hvezdicky >= 1 &&
+                       request.resource.data.hvezdicky <= 5;
+      allow update, delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  SKLAD / INVENTORY — /sklad/{id}
+    // ═══════════════════════════════════════════════════
+    match /sklad/{id} {
+      allow read:   if isApproved();
+      allow write:  if isKancelar();
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  FCM TOKENY — /fcm_tokens/{uid}
+    // ═══════════════════════════════════════════════════
+    match /fcm_tokens/{uid} {
+      allow read:   if isAdmin();
+      allow write:  if isAuth() && request.auth.uid == uid;
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  FALLBACK — vše ostatní je zakázáno
+    // ═══════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+    // ═══════════════════════════════════════════════════
+    //  MÍSTA & KLIMATIZACE — subcollections pod zakázkou
+    // ═══════════════════════════════════════════════════
+    match /zakazky/{zakazkaId}/mista/{mistaId} {
+      allow read:   if isApproved();
+      allow create: if isApproved();
+      allow update: if isKancelar() ||
+                       isAssignedTechnik(get(/databases/$(database)/documents/zakazky/$(zakazkaId)).data);
+      allow delete: if isKancelar();
+
+      match /klimatizace/{klimId} {
+        allow read:   if isApproved();
+        allow create: if isApproved();
+        allow update: if isApproved(); // technik aktualizuje stav a foto
+        allow delete: if isKancelar();
+      }
+    }

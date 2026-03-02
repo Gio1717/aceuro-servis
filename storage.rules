@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Fotky zakázek — /photos/{uid}/{filename}
+    match /photos/{uid}/{filename} {
+      // Číst může kancelář nebo technik co nahrál
+      allow read: if request.auth != null;
+      // Nahrávat může jen přihlášený uživatel do své složky
+      allow write: if request.auth != null &&
+                      request.auth.uid == uid &&
+                      request.resource.size < 10 * 1024 * 1024 && // max 10 MB
+                      request.resource.contentType.matches('image/.*');
+      // Mazat může admin nebo vlastník
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Vše ostatní zakázáno
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
