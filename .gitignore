@@ -1,0 +1,5 @@
+node_modules/
+progresklima.db
+dist/
+*.exe
+*.AppImage

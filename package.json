@@ -1,0 +1,40 @@
+{
+  "name": "progresklima-evidence",
+  "version": "1.0.0",
+  "description": "Progresklima — Evidence objednávek, faktur, příjemek a výkazů výměr",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "electron": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "cz.progresklima.evidence",
+    "productName": "Progresklima Evidence",
+    "files": [
+      "main.js",
+      "server.js",
+      "database.js",
+      "public/**/*"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0"
+  }
+}
