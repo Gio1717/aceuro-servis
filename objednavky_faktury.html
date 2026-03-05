@@ -34,32 +34,27 @@ window._fb = { auth, db, gp, signInWithEmailAndPassword, signInWithPopup,
   doc, updateDoc, serverTimestamp, deleteDoc, addDoc, getDoc, setDoc, getDocs, Timestamp };
 
 /* ── AUTH ── */
+// Skip login — show app immediately
+window._me = { displayName: 'Lokální uživatel', email: 'local@aceuro.cz', uid: 'local' };
+window._role = 'admin';
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('user-name').textContent = 'Lokální uživatel';
+  document.getElementById('user-av').textContent = 'L';
+  document.getElementById('badge-role').textContent = 'ADMIN';
+  document.getElementById('badge-role').style.display = '';
+  startLiveData();
+});
+
 onAuthStateChanged(auth, async user => {
   if (user) {
     window._me = user;
-    // Check role
     const usnap = await getDoc(doc(db, 'users', user.uid));
-    const role = usnap.exists() ? usnap.data().role : 'pending';
-    if (role === 'pending') {
-      document.getElementById('login-err').textContent = 'Váš účet čeká na schválení administrátorem.';
-      document.getElementById('login-err').style.display = 'block';
-      await signOut(auth);
-      return;
-    }
+    const role = usnap.exists() ? usnap.data().role : 'admin';
     window._role = role;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
     document.getElementById('user-name').textContent = user.displayName || user.email;
     document.getElementById('user-av').textContent = (user.displayName||user.email||'?')[0].toUpperCase();
-    if (['admin','kancelar','dispatcher','koordinator','fakturant'].includes(role)) {
-      document.getElementById('badge-role').textContent = role.toUpperCase();
-      document.getElementById('badge-role').style.display = '';
-    }
-    startLiveData();
-  } else {
-    window._me = null;
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
   }
 });
 
