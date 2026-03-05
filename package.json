@@ -1,10 +1,11 @@
 {
   "name": "progresklima-evidence",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Progresklima — Evidence objednávek, faktur, příjemek a výkazů výměr",
   "main": "main.js",
   "scripts": {
     "start": "node server.js",
+    "test": "node test/api.test.js",
     "electron": "electron .",
     "build": "electron-builder",
     "build:win": "electron-builder --win",
@@ -20,6 +21,13 @@
       "public/**/*"
     ],
     "extraResources": [],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Gio1717",
+        "repo": "aceuro-servis"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "public/icon.png"
@@ -35,6 +43,7 @@
   },
   "devDependencies": {
     "electron": "^33.0.0",
-    "electron-builder": "^25.1.0"
+    "electron-builder": "^25.1.0",
+    "electron-updater": "^6.3.0"
   }
 }
