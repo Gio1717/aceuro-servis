@@ -1,5 +1,7 @@
 node_modules/
 progresklima.db
+progresklima.db-shm
+progresklima.db-wal
 dist/
 *.exe
 *.AppImage
