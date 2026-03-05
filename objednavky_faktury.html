@@ -33,30 +33,18 @@ window._fb = { auth, db, gp, signInWithEmailAndPassword, signInWithPopup,
   signOut, collection, query, orderBy, onSnapshot, where,
   doc, updateDoc, serverTimestamp, deleteDoc, addDoc, getDoc, setDoc, getDocs, Timestamp };
 
-/* ── AUTH ── */
-// Skip login — show app immediately
+/* ── AUTH — přeskočeno, rovnou zobrazit app ── */
 window._me = { displayName: 'Lokální uživatel', email: 'local@aceuro.cz', uid: 'local' };
 window._role = 'admin';
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('user-name').textContent = 'Lokální uživatel';
-  document.getElementById('user-av').textContent = 'L';
-  document.getElementById('badge-role').textContent = 'ADMIN';
-  document.getElementById('badge-role').style.display = '';
-  startLiveData();
-});
 
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    window._me = user;
-    const usnap = await getDoc(doc(db, 'users', user.uid));
-    const role = usnap.exists() ? usnap.data().role : 'admin';
-    window._role = role;
-    document.getElementById('user-name').textContent = user.displayName || user.email;
-    document.getElementById('user-av').textContent = (user.displayName||user.email||'?')[0].toUpperCase();
-  }
-});
+// Module scripts run after DOM is ready, so we can access elements directly
+document.getElementById('login-screen').style.display = 'none';
+document.getElementById('app').style.display = 'flex';
+document.getElementById('user-name').textContent = 'Lokální uživatel';
+document.getElementById('user-av').textContent = 'L';
+document.getElementById('badge-role').textContent = 'ADMIN';
+document.getElementById('badge-role').style.display = '';
+startLiveData();
 
 /* ── LIVE DATA ── */
 let _objednavky = [], _faktury = [], _zakazky = [];
