@@ -112,6 +112,37 @@ function init() {
       rok INTEGER NOT NULL,
       posledni INTEGER DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS zakaznici (
+      id TEXT PRIMARY KEY,
+      nazev TEXT NOT NULL,
+      ico TEXT,
+      dic TEXT,
+      adresa TEXT,
+      kontakt TEXT,
+      email TEXT,
+      telefon TEXT,
+      poznamka TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS cenik (
+      id TEXT PRIMARY KEY,
+      nazev TEXT NOT NULL,
+      kategorie TEXT DEFAULT 'jiné',
+      jednotka TEXT DEFAULT 'ks',
+      cena REAL DEFAULT 0,
+      popis TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS sablony (
+      id TEXT PRIMARY KEY,
+      nazev TEXT NOT NULL,
+      typ TEXT NOT NULL,
+      data TEXT DEFAULT '{}',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   // Add columns if they don't exist (migration for existing DBs)

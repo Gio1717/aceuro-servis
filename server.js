@@ -104,7 +104,7 @@ app.post('/api/restore/json', (req, res) => {
 });
 
 // Generic CRUD routes for each entity
-const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky'];
+const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky', 'zakaznici', 'cenik', 'sablony'];
 
 entities.forEach(entity => {
   // List all
