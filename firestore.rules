@@ -182,13 +182,24 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════════════
-    //  FALLBACK — vše ostatní je zakázáno
+    //  OBJEDNÁVKY — /objednavky/{id}
     // ═══════════════════════════════════════════════════
-    match /{document=**} {
-      allow read, write: if false;
+    match /objednavky/{id} {
+      allow read:   if isApproved();
+      allow create: if isKancelar();
+      allow update: if isKancelar();
+      allow delete: if isAdmin();
     }
-  }
-}
+
+    // ═══════════════════════════════════════════════════
+    //  FAKTURY — /faktury/{id}
+    // ═══════════════════════════════════════════════════
+    match /faktury/{id} {
+      allow read:   if isApproved();
+      allow create: if isKancelar();
+      allow update: if isKancelar();
+      allow delete: if isAdmin();
+    }
 
     // ═══════════════════════════════════════════════════
     //  MÍSTA & KLIMATIZACE — subcollections pod zakázkou
@@ -203,7 +214,16 @@ service cloud.firestore {
       match /klimatizace/{klimId} {
         allow read:   if isApproved();
         allow create: if isApproved();
-        allow update: if isApproved(); // technik aktualizuje stav a foto
+        allow update: if isApproved();
         allow delete: if isKancelar();
       }
     }
+
+    // ═══════════════════════════════════════════════════
+    //  FALLBACK — vše ostatní je zakázáno
+    // ═══════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
