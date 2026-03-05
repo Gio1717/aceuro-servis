@@ -251,6 +251,93 @@ function init() {
       created_at TEXT DEFAULT (datetime('now')),
       poznamka TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS nabidky (
+      id TEXT PRIMARY KEY,
+      cislo TEXT NOT NULL,
+      zakaznik TEXT,
+      kontakt TEXT,
+      adresa TEXT,
+      popis TEXT,
+      polozky TEXT DEFAULT '[]',
+      castka REAL DEFAULT 0,
+      platnost_do TEXT,
+      stav TEXT DEFAULT 'nová',
+      poznamka TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS reklamace (
+      id TEXT PRIMARY KEY,
+      cislo TEXT NOT NULL,
+      zakaznik TEXT,
+      zakazka_id TEXT,
+      faktura_id TEXT,
+      zarizeni TEXT,
+      popis_zavady TEXT,
+      datum_prijmu TEXT,
+      datum_vyreseni TEXT,
+      stav TEXT DEFAULT 'přijatá',
+      reseni TEXT,
+      zaruka_do TEXT,
+      naklady REAL DEFAULT 0,
+      technik TEXT,
+      poznamka TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS dodavatele (
+      id TEXT PRIMARY KEY,
+      nazev TEXT NOT NULL,
+      ico TEXT,
+      dic TEXT,
+      adresa TEXT,
+      kontakt TEXT,
+      email TEXT,
+      telefon TEXT,
+      web TEXT,
+      kategorie TEXT DEFAULT 'jiné',
+      hodnoceni INTEGER DEFAULT 3,
+      poznamka TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS vozidla (
+      id TEXT PRIMARY KEY,
+      spz TEXT NOT NULL,
+      nazev TEXT,
+      typ TEXT DEFAULT 'osobní',
+      technik TEXT,
+      stav TEXT DEFAULT 'aktivní',
+      km_stav REAL DEFAULT 0,
+      stk_do TEXT,
+      pojisteni_do TEXT,
+      poznamka TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS vozidla_tankovani (
+      id TEXT PRIMARY KEY,
+      vozidlo_id TEXT NOT NULL,
+      datum TEXT,
+      litry REAL DEFAULT 0,
+      cena REAL DEFAULT 0,
+      km_stav REAL DEFAULT 0,
+      poznamka TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS crm_zaznamy (
+      id TEXT PRIMARY KEY,
+      zakaznik_id TEXT NOT NULL,
+      typ TEXT DEFAULT 'poznámka',
+      predmet TEXT,
+      obsah TEXT,
+      datum TEXT,
+      autor TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   // Add columns if they don't exist (migration for existing DBs)
@@ -326,7 +413,11 @@ const colMap = {
   pristiDatum: 'pristi_datum', triggerEntity: 'trigger_entity',
   triggerAction: 'trigger_action', triggerCondition: 'trigger_condition',
   actionType: 'action_type', actionData: 'action_data',
-  cisloUpominky: 'cislo_upominky', fakturaId: 'faktura_id'
+  cisloUpominky: 'cislo_upominky', fakturaId: 'faktura_id',
+  platnostDo: 'platnost_do', opisZavady: 'popis_zavady',
+  datumVyreseni: 'datum_vyreseni', zarukaDo: 'zaruka_do',
+  vozidloId: 'vozidlo_id', kmStav: 'km_stav',
+  stkDo: 'stk_do', pojisteniDo: 'pojisteni_do'
 };
 const colMapReverse = {};
 Object.keys(colMap).forEach(k => { colMapReverse[colMap[k]] = k; });
@@ -656,6 +747,125 @@ function executeWorkflow(entityType, action, entityData) {
   return results;
 }
 
+// ===== ISDOC EXPORT (for accounting software) =====
+function generateIsdoc(fakturaId) {
+  const f = fromDb(getById('faktury', fakturaId));
+  if (!f) return null;
+  const polozky = f.polozky || [];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:isdoc:invoice:6.0.1" version="6.0.1">
+  <DocumentType>1</DocumentType>
+  <ID>${escXml(f.cislo)}</ID>
+  <IssueDate>${f.createdAt ? f.createdAt.split('T')[0] : ''}</IssueDate>
+  <TaxPointDate>${f.createdAt ? f.createdAt.split('T')[0] : ''}</TaxPointDate>
+  <VATApplicable>true</VATApplicable>
+  <Note>${escXml(f.poznamka || '')}</Note>
+  <LocalCurrencyCode>CZK</LocalCurrencyCode>
+  <LegalMonetaryTotal>
+    <TaxExclusiveAmount>${f.castkaBezDph || 0}</TaxExclusiveAmount>
+    <TaxInclusiveAmount>${f.castka || 0}</TaxInclusiveAmount>
+    <AlreadyClaimedTaxExclusiveAmount>0</AlreadyClaimedTaxExclusiveAmount>
+    <AlreadyClaimedTaxInclusiveAmount>0</AlreadyClaimedTaxInclusiveAmount>
+    <DifferenceTaxExclusiveAmount>${f.castkaBezDph || 0}</DifferenceTaxExclusiveAmount>
+    <DifferenceTaxInclusiveAmount>${f.castka || 0}</DifferenceTaxInclusiveAmount>
+    <PayableRoundingAmount>0</PayableRoundingAmount>
+    <PaidDepositsAmount>0</PaidDepositsAmount>
+    <PayableAmount>${f.castka || 0}</PayableAmount>
+  </LegalMonetaryTotal>
+  <PaymentMeans>
+    <Payment>
+      <PaidAmount>${f.castka || 0}</PaidAmount>
+      <PaymentMeansCode>42</PaymentMeansCode>
+      <Details><PaymentDueDate>${f.splatnost ? f.splatnost.split('T')[0] : ''}</PaymentDueDate>
+        <ID>${f.vs || ''}</ID>
+      </Details>
+    </Payment>
+  </PaymentMeans>
+  <AccountingSupplierParty>
+    <Party><PartyName><Name>AC EURO servis s.r.o.</Name></PartyName></Party>
+  </AccountingSupplierParty>
+  <AccountingCustomerParty>
+    <Party>
+      <PartyIdentification><ID>${escXml(f.ico || '')}</ID></PartyIdentification>
+      <PartyName><Name>${escXml(f.zakaznik || '')}</Name></PartyName>
+      <PostalAddress><StreetName>${escXml(f.adresa || '')}</StreetName></PostalAddress>
+    </Party>
+  </AccountingCustomerParty>
+  <InvoiceLines>
+${polozky.map((p, i) => `    <InvoiceLine>
+      <ID>${i + 1}</ID>
+      <InvoicedQuantity>${p.mnozstvi || 1}</InvoicedQuantity>
+      <LineExtensionAmount>${(p.mnozstvi || 1) * (p.cena || 0)}</LineExtensionAmount>
+      <LineExtensionAmountTaxInclusive>${Math.round((p.mnozstvi || 1) * (p.cena || 0) * 1.21)}</LineExtensionAmountTaxInclusive>
+      <Item><Description>${escXml(p.nazev || '')}</Description></Item>
+    </InvoiceLine>`).join('\n')}
+  </InvoiceLines>
+</Invoice>`;
+  return xml;
+}
+
+function escXml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ===== AUTO BACKUP =====
+function autoBackup() {
+  const backupDir = path.join(path.dirname(getDbPath()), 'backups');
+  if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const dest = path.join(backupDir, `progresklima-${ts}.json`);
+  const data = getExportData();
+  fs.writeFileSync(dest, JSON.stringify(data, null, 2));
+  // Keep only last 10 backups
+  const files = fs.readdirSync(backupDir).filter(f => f.endsWith('.json')).sort();
+  while (files.length > 10) {
+    fs.unlinkSync(path.join(backupDir, files.shift()));
+  }
+  return dest;
+}
+
+// ===== TECHNICIAN STATS =====
+function getTechnicianStats() {
+  const zakazky = db.prepare("SELECT * FROM zakazky").all().map(fromDb);
+  const doch = db.prepare("SELECT * FROM dochazka").all().map(fromDb);
+  const techMap = {};
+  zakazky.forEach(z => {
+    const t = z.technik || 'Nepřiřazeno';
+    if (!techMap[t]) techMap[t] = { zakazkyTotal: 0, zakazkyDone: 0, zakazkyActive: 0, hodiny: 0, reklamace: 0 };
+    techMap[t].zakazkyTotal++;
+    if (z.stav === 'dokončená') techMap[t].zakazkyDone++;
+    else if (z.stav !== 'zrušená') techMap[t].zakazkyActive++;
+  });
+  doch.forEach(d => {
+    const t = d.technik || '?';
+    if (!techMap[t]) techMap[t] = { zakazkyTotal: 0, zakazkyDone: 0, zakazkyActive: 0, hodiny: 0, reklamace: 0 };
+    techMap[t].hodiny += d.hodiny || 0;
+  });
+  const rekl = db.prepare("SELECT * FROM reklamace").all().map(fromDb);
+  rekl.forEach(r => {
+    const t = r.technik || '?';
+    if (techMap[t]) techMap[t].reklamace++;
+  });
+  return Object.keys(techMap).map(t => ({ technik: t, ...techMap[t] }));
+}
+
+// ===== NABÍDKA → OBJEDNÁVKA =====
+function convertNabidkaToObj(nabidkaId) {
+  const n = fromDb(getById('nabidky', nabidkaId));
+  if (!n) return null;
+  const cislo = getNextNumber('OBJ');
+  const objId = require('crypto').randomUUID();
+  insertMapped('objednavky', {
+    id: objId, cislo, zakaznik: n.zakaznik || '', kontakt: n.kontakt || '',
+    popis: n.popis || '', castka: n.castka || 0,
+    polozky: n.polozky || [], stav: 'nová',
+    createdAt: new Date().toISOString(), createdBy: 'Z nabídky ' + n.cislo,
+    poznamka: 'Vytvořeno z nabídky ' + n.cislo
+  });
+  updateMapped('nabidky', nabidkaId, { stav: 'přijatá' });
+  return { id: objId, cislo };
+}
+
 module.exports = {
   init, getAll: getAllMapped, getById: (t, id) => fromDb(getById(t, id)),
   insert: insertMapped, update: updateMapped, remove,
@@ -666,5 +876,6 @@ module.exports = {
   backupDatabase, getExportData, importData,
   skladPohyb, getSkladPohyby, getSkladLowStock,
   generateUpominky, getCashFlow,
-  checkPravidelneZakazky, executeWorkflow
+  checkPravidelneZakazky, executeWorkflow,
+  generateIsdoc, autoBackup, getTechnicianStats, convertNabidkaToObj
 };

@@ -239,9 +239,70 @@ app.post('/api/import/xlsx', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ===== ISDOC EXPORT =====
+app.get('/api/faktury/:id/isdoc', (req, res) => {
+  try {
+    const xml = db.generateIsdoc(req.params.id);
+    if (!xml) return res.status(404).json({ error: 'Faktura not found' });
+    res.setHeader('Content-Type', 'application/xml');
+    res.setHeader('Content-Disposition', `attachment; filename=faktura-${req.params.id}.isdoc`);
+    res.send(xml);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== AUTO BACKUP =====
+app.post('/api/backup/auto', (req, res) => {
+  try {
+    const dest = db.autoBackup();
+    res.json({ ok: true, path: dest });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== TECHNICIAN STATS =====
+app.get('/api/stats/technicians', (req, res) => {
+  try { res.json(db.getTechnicianStats()); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== NABÍDKA → OBJEDNÁVKA =====
+app.post('/api/nabidky/:id/convert', (req, res) => {
+  try {
+    const result = db.convertNabidkaToObj(req.params.id);
+    if (!result) return res.status(404).json({ error: 'Nabídka not found' });
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== VOZIDLA TANKOVÁNÍ =====
+app.get('/api/vozidla/:id/tankovani', (req, res) => {
+  try {
+    const all = db.getAll('vozidla_tankovani').filter(t => t.vozidloId === req.params.id);
+    res.json(all);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== CRM ZÁZNAMY =====
+app.get('/api/crm/:zakaznikId', (req, res) => {
+  try {
+    const all = db.getAll('crm_zaznamy').filter(c => c.zakaznikId === req.params.zakaznikId);
+    res.json(all);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ===== QR KÓDY SKLADU =====
+app.get('/api/sklad/:id/qr', (req, res) => {
+  try {
+    const item = db.getById('sklad', req.params.id);
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    // Return data for QR code generation on client side
+    res.json({ text: `SKLAD|${item.id}|${item.kod || ''}|${item.nazev}|${item.mnozstvi}${item.jednotka || 'ks'}`, item });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Generic CRUD routes for each entity
 const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky', 'zakaznici', 'cenik', 'sablony',
-  'sklad', 'sklad_pohyby', 'servis_historie', 'dochazka', 'pravidelne_zakazky', 'upominky', 'workflow_rules', 'fotodokumentace', 'zalohove_faktury'];
+  'sklad', 'sklad_pohyby', 'servis_historie', 'dochazka', 'pravidelne_zakazky', 'upominky', 'workflow_rules', 'fotodokumentace', 'zalohove_faktury',
+  'nabidky', 'reklamace', 'dodavatele', 'vozidla', 'vozidla_tankovani', 'crm_zaznamy'];
 
 entities.forEach(entity => {
   // List all

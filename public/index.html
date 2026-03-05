@@ -380,6 +380,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <button class="tab-btn" data-tab="cashflow" onclick="switchTab('cashflow');renderCashFlow()">Cash-flow</button>
     <button class="tab-btn" data-tab="pravidZak" onclick="switchTab('pravidZak');renderPravidelne()">Pravidelné</button>
     <button class="tab-btn" data-tab="workflowTb" onclick="switchTab('workflowTb');renderWorkflow()">Workflow</button>
+    <button class="tab-btn" data-tab="nabidkyTb" onclick="switchTab('nabidkyTb');renderNabidky()">Nabídky</button>
+    <button class="tab-btn" data-tab="reklamaceTb" onclick="switchTab('reklamaceTb');renderReklamace()">Reklamace</button>
+    <button class="tab-btn" data-tab="dodavateleTb" onclick="switchTab('dodavateleTb');renderDodavatele()">Dodavatelé</button>
+    <button class="tab-btn" data-tab="vozidlaTb" onclick="switchTab('vozidlaTb');renderVozidla()">Vozidla</button>
+    <button class="tab-btn" data-tab="techStatsTb" onclick="switchTab('techStatsTb');renderTechStats()">Statistiky</button>
     <button class="tab-btn" data-tab="nastaveni" onclick="switchTab('nastaveni')">Nastavení</button>
   </div>
   <div class="tab-panel active" id="tab-dashboard">
@@ -442,7 +447,9 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <input type="text" id="zak-filter" placeholder="Hledat..." oninput="renderZakazky()">
         <select id="zak-stav-filter" onchange="renderZakazky()"><option value="">Vše</option><option value="nová">Nová</option><option value="přiřazená">Přiřazená</option><option value="v realizaci">V realizaci</option><option value="dokončená">Dokončená</option><option value="fakturovaná">Fakturovaná</option><option value="zaplacená">Zaplacená</option><option value="zrušená">Zrušená</option></select>
         <button class="btn-new" onclick="openZakModal()">+ Nová</button>
+        <button class="btn-action btn-edit" style="font-size:11px;padding:4px 10px" onclick="toggleGantt()">Gantt</button>
       </div>
+      <div id="gantt-view" style="display:none;padding:8px;overflow-x:auto"></div>
       <div class="list-scroll" id="zak-list"></div>
     </div>
     <div class="detail-panel" id="zak-detail"><div class="empty-msg">Vyberte zakázku ze seznamu vlevo</div></div>
@@ -712,6 +719,85 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   </form>
 </div></div>
 
+<!-- NABÍDKA MODAL -->
+<div class="modal-overlay" id="nabidka-modal"><div class="modal-box">
+  <h3 id="nabidka-modal-title">Nová nabídka</h3>
+  <form onsubmit="saveNabidka(event)">
+    <input type="hidden" id="nab-edit-id">
+    <div class="modal-row"><div class="fg"><label>Číslo</label><input type="text" id="nab-cislo" required></div><div class="fg autocomplete-wrap"><label>Zákazník</label><input type="text" id="nab-zakaznik" autocomplete="off"><div class="autocomplete-list" id="nab-ac-list"></div></div></div>
+    <div class="modal-row"><div class="fg"><label>Kontakt</label><input type="text" id="nab-kontakt"></div><div class="fg"><label>Platnost do</label><input type="date" id="nab-platnost"></div></div>
+    <div class="fg"><label>Popis</label><textarea id="nab-popis"></textarea></div>
+    <div class="fg"><label>Položky</label><div id="nab-polozky-list"></div><button type="button" class="btn-action btn-edit" style="font-size:11px;margin-top:4px" onclick="addPolozka('nab')">+ Položka</button></div>
+    <div class="fg"><label>Poznámka</label><textarea id="nab-poznamka"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('nabidka-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+  </form>
+</div></div>
+
+<!-- REKLAMACE MODAL -->
+<div class="modal-overlay" id="reklamace-modal"><div class="modal-box">
+  <h3 id="reklamace-modal-title">Nová reklamace</h3>
+  <form onsubmit="saveReklamace(event)">
+    <input type="hidden" id="rekl-edit-id">
+    <div class="modal-row"><div class="fg"><label>Číslo</label><input type="text" id="rekl-cislo" required></div><div class="fg"><label>Zákazník</label><input type="text" id="rekl-zakaznik"></div></div>
+    <div class="modal-row"><div class="fg"><label>Zařízení</label><input type="text" id="rekl-zarizeni" placeholder="Daikin FTXM25"></div><div class="fg"><label>Technik</label><input type="text" id="rekl-technik"></div></div>
+    <div class="modal-row"><div class="fg"><label>Datum přijetí</label><input type="date" id="rekl-datum-prijmu"></div><div class="fg"><label>Záruka do</label><input type="date" id="rekl-zaruka-do"></div></div>
+    <div class="fg"><label>Popis závady</label><textarea id="rekl-popis-zavady" required></textarea></div>
+    <div class="modal-row"><div class="fg"><label>Stav</label><select id="rekl-stav"><option value="přijatá">Přijatá</option><option value="v řešení">V řešení</option><option value="vyřešená">Vyřešená</option><option value="zamítnutá">Zamítnutá</option></select></div><div class="fg"><label>Náklady</label><input type="number" id="rekl-naklady" step="0.01" value="0"></div></div>
+    <div class="fg"><label>Řešení</label><textarea id="rekl-reseni"></textarea></div>
+    <div class="fg"><label>Poznámka</label><textarea id="rekl-poznamka-r"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('reklamace-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+  </form>
+</div></div>
+
+<!-- DODAVATEL MODAL -->
+<div class="modal-overlay" id="dodavatel-modal"><div class="modal-box">
+  <h3 id="dodavatel-modal-title">Nový dodavatel</h3>
+  <form onsubmit="saveDodavatel(event)">
+    <input type="hidden" id="dod-edit-id">
+    <div class="modal-row"><div class="fg"><label>Název</label><input type="text" id="dod-nazev" required></div><div class="fg"><label>IČO</label><div style="display:flex;gap:6px"><input type="text" id="dod-ico" style="flex:1"><button type="button" class="btn-action btn-edit" style="font-size:10px;padding:4px 8px" onclick="lookupAresDod()">ARES</button></div></div></div>
+    <div class="modal-row"><div class="fg"><label>DIČ</label><input type="text" id="dod-dic"></div><div class="fg"><label>Kategorie</label><select id="dod-kategorie"><option>klimatizace</option><option>čerpadla</option><option>elektro</option><option>materiál</option><option selected>jiné</option></select></div></div>
+    <div class="modal-row"><div class="fg"><label>Adresa</label><input type="text" id="dod-adresa"></div><div class="fg"><label>Web</label><input type="text" id="dod-web"></div></div>
+    <div class="modal-row"><div class="fg"><label>Kontakt</label><input type="text" id="dod-kontakt"></div><div class="fg"><label>Email</label><input type="email" id="dod-email"></div></div>
+    <div class="modal-row"><div class="fg"><label>Telefon</label><input type="tel" id="dod-telefon"></div><div class="fg"><label>Hodnocení (1-5)</label><input type="number" id="dod-hodnoceni" min="1" max="5" value="3"></div></div>
+    <div class="fg"><label>Poznámka</label><textarea id="dod-poznamka-d"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('dodavatel-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+  </form>
+</div></div>
+
+<!-- VOZIDLO MODAL -->
+<div class="modal-overlay" id="vozidlo-modal"><div class="modal-box">
+  <h3 id="vozidlo-modal-title">Nové vozidlo</h3>
+  <form onsubmit="saveVozidlo(event)">
+    <input type="hidden" id="voz-edit-id">
+    <div class="modal-row"><div class="fg"><label>SPZ</label><input type="text" id="voz-spz" required placeholder="1A2 3456"></div><div class="fg"><label>Název</label><input type="text" id="voz-nazev" placeholder="VW Caddy"></div></div>
+    <div class="modal-row"><div class="fg"><label>Typ</label><select id="voz-typ"><option>osobní</option><option>dodávka</option><option>nákladní</option><option>přívěs</option></select></div><div class="fg"><label>Technik</label><input type="text" id="voz-technik"></div></div>
+    <div class="modal-row"><div class="fg"><label>Stav km</label><input type="number" id="voz-km" step="1" value="0"></div><div class="fg"><label>Stav</label><select id="voz-stav-v"><option value="aktivní">Aktivní</option><option value="v servisu">V servisu</option><option value="vyřazené">Vyřazené</option></select></div></div>
+    <div class="modal-row"><div class="fg"><label>STK do</label><input type="date" id="voz-stk"></div><div class="fg"><label>Pojištění do</label><input type="date" id="voz-pojisteni"></div></div>
+    <div class="fg"><label>Poznámka</label><textarea id="voz-poznamka-v"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('vozidlo-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+  </form>
+</div></div>
+
+<!-- TANKOVÁNÍ MODAL -->
+<div class="modal-overlay" id="tankovani-modal"><div class="modal-box">
+  <h3>Tankování</h3>
+  <input type="hidden" id="tank-voz-id">
+  <div class="modal-row"><div class="fg"><label>Datum</label><input type="date" id="tank-datum"></div><div class="fg"><label>Litry</label><input type="number" id="tank-litry" step="0.01" value="0"></div></div>
+  <div class="modal-row"><div class="fg"><label>Cena</label><input type="number" id="tank-cena" step="0.01" value="0"></div><div class="fg"><label>Stav km</label><input type="number" id="tank-km" step="1" value="0"></div></div>
+  <div class="fg"><label>Poznámka</label><input type="text" id="tank-poznamka"></div>
+  <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('tankovani-modal')">Zrušit</button><button type="button" class="btn-save" onclick="saveTankovani()">Uložit</button></div>
+</div></div>
+
+<!-- CRM ZÁZNAM MODAL -->
+<div class="modal-overlay" id="crm-modal"><div class="modal-box">
+  <h3>Kontaktní záznam</h3>
+  <input type="hidden" id="crm-zakaznik-id">
+  <div class="modal-row"><div class="fg"><label>Typ</label><select id="crm-typ"><option>poznámka</option><option>telefonát</option><option>email</option><option>schůzka</option><option>nabídka</option></select></div><div class="fg"><label>Datum</label><input type="date" id="crm-datum"></div></div>
+  <div class="fg"><label>Předmět</label><input type="text" id="crm-predmet"></div>
+  <div class="fg"><label>Obsah</label><textarea id="crm-obsah"></textarea></div>
+  <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('crm-modal')">Zrušit</button><button type="button" class="btn-save" onclick="saveCrmZaznam()">Uložit</button></div>
+</div></div>
+
 <!-- KEYBOARD SHORTCUTS HINT -->
 <div class="kbd-hint" id="kbd-hint">
   <h4>Klávesové zkratky</h4>
@@ -876,6 +962,69 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- NABÍDKY -->
+<div class="tab-panel" id="tab-nabidkyTb">
+  <div class="split-layout">
+    <div class="list-pane">
+      <div class="list-header">
+        <input type="text" id="nab-filter" placeholder="Hledat nabídku..." oninput="renderNabidky()">
+        <select id="nab-stav-filter" onchange="renderNabidky()"><option value="">Všechny stavy</option><option value="nová">Nová</option><option value="odeslaná">Odeslaná</option><option value="přijatá">Přijatá</option><option value="odmítnutá">Odmítnutá</option></select>
+        <button class="btn-new" onclick="openNabidkaModal()">+ Nabídka</button>
+      </div>
+      <div id="nab-list"></div>
+    </div>
+    <div class="detail-pane" id="nab-detail"><div class="empty-msg">Vyberte nabídku</div></div>
+  </div>
+</div>
+
+<!-- REKLAMACE -->
+<div class="tab-panel" id="tab-reklamaceTb">
+  <div class="split-layout">
+    <div class="list-pane">
+      <div class="list-header">
+        <input type="text" id="rekl-filter" placeholder="Hledat reklamaci..." oninput="renderReklamace()">
+        <select id="rekl-stav-filter" onchange="renderReklamace()"><option value="">Všechny stavy</option><option value="přijatá">Přijatá</option><option value="v řešení">V řešení</option><option value="vyřešená">Vyřešená</option><option value="zamítnutá">Zamítnutá</option></select>
+        <button class="btn-new" onclick="openReklamaceModal()">+ Reklamace</button>
+      </div>
+      <div id="rekl-list"></div>
+    </div>
+    <div class="detail-pane" id="rekl-detail"><div class="empty-msg">Vyberte reklamaci</div></div>
+  </div>
+</div>
+
+<!-- DODAVATELÉ -->
+<div class="tab-panel" id="tab-dodavateleTb">
+  <div class="dash">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3>Dodavatelé</h3>
+      <button class="btn-action btn-edit" onclick="openDodavatelModal()">+ Nový dodavatel</button>
+    </div>
+    <input type="text" id="dod-filter" placeholder="Hledat dodavatele..." oninput="renderDodavatele()" style="width:100%;max-width:400px;margin-bottom:16px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px">
+    <div id="dod-list"></div>
+  </div>
+</div>
+
+<!-- VOZIDLA -->
+<div class="tab-panel" id="tab-vozidlaTb">
+  <div class="dash">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3>Firemní vozidla</h3>
+      <button class="btn-action btn-edit" onclick="openVozidloModal()">+ Nové vozidlo</button>
+    </div>
+    <div id="vozidla-alerts" style="margin-bottom:16px"></div>
+    <div id="vozidla-list"></div>
+  </div>
+</div>
+
+<!-- STATISTIKY TECHNIKŮ -->
+<div class="tab-panel" id="tab-techStatsTb">
+  <div class="dash">
+    <h3 style="margin-bottom:16px">Statistiky techniků</h3>
+    <div id="tech-stats-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:20px"></div>
+    <div id="tech-stats-table"></div>
+  </div>
+</div>
+
 <div class="tab-panel" id="tab-nastaveni">
   <div class="dash">
     <h3>Nastavení a správa</h3>
@@ -904,6 +1053,11 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <button class="btn-action btn-invoice" onclick="generateUpominky()">Generovat upomínky</button>
         <button class="btn-action btn-upload" onclick="checkPravidelne()">Zkontrolovat pravidelné</button>
       </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
+      <h3 style="font-size:14px;margin-bottom:12px">Automatické zálohování</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Ruční záloha do složky backups. Uchovává posledních 10 záloh.</p>
+      <button class="btn-action btn-edit" onclick="runAutoBackup()">Vytvořit zálohu</button>
     </div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
       <h3 style="font-size:14px;margin-bottom:12px">Mapa zakázek</h3>
@@ -1154,7 +1308,7 @@ function showFakDetail(id){
   if(f.zakazkaId){var lz=_zakazky.find(function(z){return z.id===f.zakazkaId});if(lz)linkedZak='<span class="stav-chip st-progress" style="cursor:pointer" onclick="switchTab(\'zakazky\');selectZak(\''+lz.id+'\')">'+lz.cislo+'</span>'}
   // Overdue warning
   var overdueWarn=ov?'<div style="background:#fde8e8;border:1px solid #f5c6cb;border-radius:8px;padding:12px;margin-bottom:16px;color:#721c24;font-size:12px;font-weight:600">Tato faktura je '+daysOverdue(f)+' dní po splatnosti! Splatnost byla '+fmtDate(f.splatnost)+'.</div>':'';
-  document.getElementById('fak-detail').innerHTML=overdueWarn+'<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(f.zakaznik||'—')+'</span></div><div class="dfield"><label>IČO</label><span>'+(f.ico||'—')+'</span></div><div class="dfield"><label>DIČ</label><span>'+(f.dic||'—')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'—')+'</span></div><div class="dfield"><label>Vystaveno</label><span>'+fmtDate(f.createdAt)+'</span></div><div class="dfield"><label>Splatnost</label><span style="'+(ov?'color:var(--err);font-weight:700':'')+'">'+(ov?fmtDate(f.splatnost)+' ('+daysOverdue(f)+' dní)':fmtDate(f.splatnost))+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'—')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'—')+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(f.createdBy||'—')+'</span></div>'+(linkedZak?'<div class="dfield"><label>Propojená zakázka</label>'+linkedZak+'</div>':'')+'</div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(f.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFakStav(\''+f.id+'\',this.value)"><option value="vystavená"'+(f.stav==='vystavená'?' selected':'')+'>Vystavená</option><option value="odeslaná"'+(f.stav==='odeslaná'?' selected':'')+'>Odeslaná</option><option value="zaplacená"'+(f.stav==='zaplacená'?' selected':'')+'>Zaplacená</option><option value="stornovaná"'+(f.stav==='stornovaná'?' selected':'')+'>Stornovaná</option></select><button class="btn-action btn-edit" onclick="openFakModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-invoice" onclick="showFakPdf(\''+f.id+'\')">PDF / Tisk</button><button class="btn-action btn-edit" onclick="openEmailModal(\''+f.id+'\')">Email</button><button class="btn-action btn-upload" onclick="openZalohaModal(\''+f.id+'\')">Záloha</button><button class="btn-action btn-upload" onclick="duplicateFak(\''+f.id+'\')">Duplikovat</button><button class="btn-action btn-edit" onclick="saveTemplateFrom(\'faktury\',\''+f.id+'\')">Uložit šablonu</button><button class="btn-action btn-del" onclick="deleteFak(\''+f.id+'\')">Smazat</button></div>';
+  document.getElementById('fak-detail').innerHTML=overdueWarn+'<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(f.zakaznik||'—')+'</span></div><div class="dfield"><label>IČO</label><span>'+(f.ico||'—')+'</span></div><div class="dfield"><label>DIČ</label><span>'+(f.dic||'—')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'—')+'</span></div><div class="dfield"><label>Vystaveno</label><span>'+fmtDate(f.createdAt)+'</span></div><div class="dfield"><label>Splatnost</label><span style="'+(ov?'color:var(--err);font-weight:700':'')+'">'+(ov?fmtDate(f.splatnost)+' ('+daysOverdue(f)+' dní)':fmtDate(f.splatnost))+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'—')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'—')+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(f.createdBy||'—')+'</span></div>'+(linkedZak?'<div class="dfield"><label>Propojená zakázka</label>'+linkedZak+'</div>':'')+'</div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(f.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFakStav(\''+f.id+'\',this.value)"><option value="vystavená"'+(f.stav==='vystavená'?' selected':'')+'>Vystavená</option><option value="odeslaná"'+(f.stav==='odeslaná'?' selected':'')+'>Odeslaná</option><option value="zaplacená"'+(f.stav==='zaplacená'?' selected':'')+'>Zaplacená</option><option value="stornovaná"'+(f.stav==='stornovaná'?' selected':'')+'>Stornovaná</option></select><button class="btn-action btn-edit" onclick="openFakModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-invoice" onclick="showFakPdf(\''+f.id+'\')">PDF / Tisk</button><button class="btn-action btn-edit" onclick="openEmailModal(\''+f.id+'\')">Email</button><button class="btn-action btn-upload" onclick="openZalohaModal(\''+f.id+'\')">Záloha</button><button class="btn-action btn-upload" onclick="exportIsdoc(\''+f.id+'\')">ISDOC</button><button class="btn-action btn-upload" onclick="duplicateFak(\''+f.id+'\')">Duplikovat</button><button class="btn-action btn-edit" onclick="saveTemplateFrom(\'faktury\',\''+f.id+'\')">Uložit šablonu</button><button class="btn-action btn-del" onclick="deleteFak(\''+f.id+'\')">Smazat</button></div>';
 }
 function changeFakStav(id,s){var f=_faktury.find(function(x){return x.id===id});if(f){f.stav=s;DataStore.updateItem('faktury',id,{stav:s});renderFaktury();renderDashboard()}}
 function deleteFak(id){if(!confirm('Smazat fakturu?'))return;_faktury=_faktury.filter(function(x){return x.id!==id});DataStore.deleteItem('faktury',id);_selFak=null;document.getElementById('fak-detail').innerHTML='<div class="empty-msg">Vyberte fakturu</div>';renderFaktury();renderDashboard()}
@@ -1839,7 +1993,7 @@ function renderZakaznici(){
   var list=_zakaznici;
   if(f)list=list.filter(function(z){return(z.nazev||'').toLowerCase().indexOf(f)>=0||(z.ico||'').toLowerCase().indexOf(f)>=0||(z.email||'').toLowerCase().indexOf(f)>=0});
   document.getElementById('zakaznici-body').innerHTML=list.length===0?'<tr><td colspan="6" class="empty-msg">Žádní zákazníci. Přidejte prvního.</td></tr>':list.map(function(z){
-    return'<tr><td style="font-weight:600">'+escHtml(z.nazev)+'</td><td>'+(z.ico||'—')+'</td><td>'+(z.kontakt||'—')+'</td><td>'+(z.email||'—')+'</td><td>'+(z.telefon||'—')+'</td><td><button class="btn-action btn-edit" style="padding:4px 10px;font-size:11px" onclick="openZakaznikModal(\''+z.id+'\')">Upravit</button> <button class="btn-action btn-del" style="padding:4px 10px;font-size:11px" onclick="deleteZakaznik(\''+z.id+'\')">Smazat</button></td></tr>';
+    return'<tr><td style="font-weight:600">'+escHtml(z.nazev)+'</td><td>'+(z.ico||'—')+'</td><td>'+(z.kontakt||'—')+'</td><td>'+(z.email||'—')+'</td><td>'+(z.telefon||'—')+'</td><td><button class="btn-action btn-edit" style="padding:4px 10px;font-size:11px" onclick="openZakaznikModal(\''+z.id+'\')">Upravit</button> <button class="btn-action btn-invoice" style="padding:4px 10px;font-size:11px" onclick="openCrmPanel(\''+z.id+'\')">CRM</button> <button class="btn-action btn-del" style="padding:4px 10px;font-size:11px" onclick="deleteZakaznik(\''+z.id+'\')">Smazat</button></td></tr>';
   }).join('');
 }
 function openZakaznikModal(eid){
@@ -2139,7 +2293,7 @@ async function loadSklad(){try{var r=await fetch('/api/sklad');_sklad=await r.js
 function renderSklad(){
   var f=(document.getElementById('sklad-filter').value||'').toLowerCase();
   var list=_sklad;if(f)list=list.filter(function(s){return(s.nazev||'').toLowerCase().indexOf(f)>=0||(s.kod||'').toLowerCase().indexOf(f)>=0||(s.kategorie||'').toLowerCase().indexOf(f)>=0});
-  document.getElementById('sklad-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné skladové položky</div>':'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--blue2)"><th style="padding:8px;text-align:left">Kód</th><th style="text-align:left">Název</th><th style="text-align:left">Kategorie</th><th style="text-align:right">Množství</th><th style="text-align:right">Min.</th><th style="text-align:right">Nákup</th><th style="text-align:right">Prodej</th><th>Akce</th></tr></thead><tbody>'+list.map(function(s){var low=s.minMnozstvi>0&&s.mnozstvi<=s.minMnozstvi;return'<tr style="border-bottom:1px solid var(--border);'+(low?'background:#fde8e8':'')+'"><td style="padding:8px">'+(s.kod||'—')+'</td><td><strong>'+(s.nazev||'')+'</strong></td><td>'+(s.kategorie||'')+'</td><td style="text-align:right;'+(low?'color:var(--err);font-weight:700':'')+'">'+(s.mnozstvi||0)+' '+(s.jednotka||'')+'</td><td style="text-align:right">'+(s.minMnozstvi||0)+'</td><td style="text-align:right">'+fmtMoney(s.cenaNakup||0)+'</td><td style="text-align:right">'+fmtMoney(s.cenaProdej||0)+'</td><td style="text-align:center"><button class="btn-action btn-edit" style="font-size:11px;padding:3px 8px" onclick="openSkladModal(\''+s.id+'\')">Edit</button> <button class="btn-action btn-invoice" style="font-size:11px;padding:3px 8px" onclick="openSkladPohybModal(\''+s.id+'\')">Pohyb</button></td></tr>'}).join('')+'</tbody></table>';
+  document.getElementById('sklad-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné skladové položky</div>':'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--blue2)"><th style="padding:8px;text-align:left">Kód</th><th style="text-align:left">Název</th><th style="text-align:left">Kategorie</th><th style="text-align:right">Množství</th><th style="text-align:right">Min.</th><th style="text-align:right">Nákup</th><th style="text-align:right">Prodej</th><th>Akce</th></tr></thead><tbody>'+list.map(function(s){var low=s.minMnozstvi>0&&s.mnozstvi<=s.minMnozstvi;return'<tr style="border-bottom:1px solid var(--border);'+(low?'background:#fde8e8':'')+'"><td style="padding:8px">'+(s.kod||'—')+'</td><td><strong>'+(s.nazev||'')+'</strong></td><td>'+(s.kategorie||'')+'</td><td style="text-align:right;'+(low?'color:var(--err);font-weight:700':'')+'">'+(s.mnozstvi||0)+' '+(s.jednotka||'')+'</td><td style="text-align:right">'+(s.minMnozstvi||0)+'</td><td style="text-align:right">'+fmtMoney(s.cenaNakup||0)+'</td><td style="text-align:right">'+fmtMoney(s.cenaProdej||0)+'</td><td style="text-align:center"><button class="btn-action btn-edit" style="font-size:11px;padding:3px 8px" onclick="openSkladModal(\''+s.id+'\')">Edit</button> <button class="btn-action btn-invoice" style="font-size:11px;padding:3px 8px" onclick="openSkladPohybModal(\''+s.id+'\')">Pohyb</button> <button class="btn-action btn-upload" style="font-size:11px;padding:3px 8px" onclick="showSkladQr(\''+s.id+'\')">QR</button></td></tr>'}).join('')+'</tbody></table>';
 }
 function openSkladModal(eid){
   var s=eid?_sklad.find(function(x){return x.id===eid}):null;
@@ -2444,12 +2598,277 @@ function openMapModal(){
   alert('Aktivní zakázky s adresou ('+zakList.length+'):\n\n'+addrList);
 }
 
+/* ===== NABÍDKY ===== */
+var _nabidky=[],_selNab=null;
+async function loadNabidky(){try{var r=await fetch('/api/nabidky');_nabidky=await r.json()}catch(e){_nabidky=JSON.parse(localStorage.getItem('nabidky')||'[]')}}
+function renderNabidky(){
+  var f=(document.getElementById('nab-filter').value||'').toLowerCase(),sf=document.getElementById('nab-stav-filter').value;
+  var list=_nabidky;
+  if(f)list=list.filter(function(n){return(n.cislo||'').toLowerCase().indexOf(f)>=0||(n.zakaznik||'').toLowerCase().indexOf(f)>=0});
+  if(sf)list=list.filter(function(n){return n.stav===sf});
+  document.getElementById('nab-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné nabídky</div>':list.map(function(n){var expired=n.platnostDo&&new Date(n.platnostDo)<new Date()&&n.stav==='nová';return'<div class="item-card '+(_selNab===n.id?'active':'')+' '+(expired?'overdue':'')+'" onclick="_selNab=\''+n.id+'\';renderNabidky()"><div class="item-head"><span class="item-num">'+n.cislo+'</span><span class="stav-chip '+stCls(n.stav)+'">'+(expired?'Prošlá':(n.stav||'nová'))+'</span></div><div class="item-sub">'+(n.zakaznik||'—')+'</div><div class="item-meta">'+fmtDate(n.createdAt)+' · '+fmtMoney(n.castka)+(n.platnostDo?' · Do: '+fmtDate(n.platnostDo):'')+'</div></div>'}).join('');
+  if(_selNab)showNabDetail(_selNab);
+}
+function showNabDetail(id){
+  var n=_nabidky.find(function(x){return x.id===id});if(!n){document.getElementById('nab-detail').innerHTML='<div class="empty-msg">Vyberte nabídku</div>';return}
+  var ph=n.polozky&&n.polozky.length?'<table class="pol-table"><thead><tr><th>Název</th><th>Množ.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+n.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez položek</span>';
+  document.getElementById('nab-detail').innerHTML='<div class="detail-header"><h2>'+n.cislo+'</h2><span class="stav-chip '+stCls(n.stav)+'">'+(n.stav||'nová')+'</span></div><div class="detail-grid"><div class="dfield"><label>Zákazník</label><span>'+(n.zakaznik||'—')+'</span></div><div class="dfield"><label>Kontakt</label><span>'+(n.kontakt||'—')+'</span></div><div class="dfield"><label>Vytvořeno</label><span>'+fmtDate(n.createdAt)+'</span></div><div class="dfield"><label>Platnost do</label><span>'+fmtDate(n.platnostDo)+'</span></div><div class="dfield"><label>Částka</label><span class="amount-big">'+fmtMoney(n.castka)+'</span></div></div><div class="dfield full"><label>Popis</label><p>'+(n.popis||'—')+'</p></div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(n.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeNabStav(\''+n.id+'\',this.value)"><option value="nová"'+(n.stav==='nová'?' selected':'')+'>Nová</option><option value="odeslaná"'+(n.stav==='odeslaná'?' selected':'')+'>Odeslaná</option><option value="přijatá"'+(n.stav==='přijatá'?' selected':'')+'>Přijatá</option><option value="odmítnutá"'+(n.stav==='odmítnutá'?' selected':'')+'>Odmítnutá</option></select><button class="btn-action btn-edit" onclick="openNabidkaModal(\''+n.id+'\')">Upravit</button><button class="btn-action btn-invoice" onclick="convertNabidka(\''+n.id+'\')">Převést na objednávku</button><button class="btn-action btn-del" onclick="deleteNabidka(\''+n.id+'\')">Smazat</button></div>';
+}
+function openNabidkaModal(eid){
+  var n=eid?_nabidky.find(function(x){return x.id===eid}):null;
+  document.getElementById('nabidka-modal-title').textContent=n?'Upravit nabídku':'Nová nabídka';
+  document.getElementById('nab-edit-id').value=eid||'';
+  if(!n){DataStore.getNextNumber('NAB').then(function(c){document.getElementById('nab-cislo').value=c})}else{document.getElementById('nab-cislo').value=n.cislo}
+  document.getElementById('nab-zakaznik').value=n?n.zakaznik:'';
+  document.getElementById('nab-kontakt').value=n?n.kontakt:'';
+  document.getElementById('nab-platnost').value=n&&n.platnostDo?toIDate(n.platnostDo):'';
+  document.getElementById('nab-popis').value=n?n.popis:'';
+  document.getElementById('nab-poznamka').value=n?n.poznamka:'';
+  _editPolozky=n&&n.polozky?n.polozky.map(function(p){return{nazev:p.nazev,mnozstvi:p.mnozstvi,cena:p.cena}}):[]; renderEditPolozky('nab');
+  document.getElementById('nabidka-modal').style.display='flex';
+}
+function saveNabidka(e){
+  e.preventDefault();var id=document.getElementById('nab-edit-id').value;
+  var pol=_editPolozky.filter(function(p){return p.nazev});
+  var castka=pol.reduce(function(a,p){return a+(p.mnozstvi||0)*(p.cena||0)},0);
+  var data={cislo:document.getElementById('nab-cislo').value,zakaznik:document.getElementById('nab-zakaznik').value,kontakt:document.getElementById('nab-kontakt').value,platnostDo:document.getElementById('nab-platnost').value?new Date(document.getElementById('nab-platnost').value).toISOString():null,popis:document.getElementById('nab-popis').value,poznamka:document.getElementById('nab-poznamka').value,polozky:pol,castka:castka};
+  if(id){DataStore.updateItem('nabidky',id,data);var n=_nabidky.find(function(x){return x.id===id});if(n)Object.assign(n,data)}else{data.id=gid();data.stav='nová';data.createdAt=new Date().toISOString();data.createdBy='Progresklima';_nabidky.unshift(data);DataStore.saveItem('nabidky',data)}
+  closeModal('nabidka-modal');renderNabidky();
+}
+function changeNabStav(id,s){var n=_nabidky.find(function(x){return x.id===id});if(n){n.stav=s;DataStore.updateItem('nabidky',id,{stav:s});renderNabidky()}}
+function deleteNabidka(id){if(!confirm('Smazat nabídku?'))return;_nabidky=_nabidky.filter(function(x){return x.id!==id});DataStore.deleteItem('nabidky',id);_selNab=null;document.getElementById('nab-detail').innerHTML='<div class="empty-msg">Vyberte nabídku</div>';renderNabidky()}
+async function convertNabidka(id){
+  if(!confirm('Převést nabídku na objednávku?'))return;
+  try{var r=await fetch('/api/nabidky/'+id+'/convert',{method:'POST'});var res=await r.json();
+  if(res.cislo){alert('Vytvořena objednávka: '+res.cislo);var n=_nabidky.find(function(x){return x.id===id});if(n)n.stav='přijatá';renderNabidky();await DataStore.init();renderObjednavky()}}catch(e){alert('Chyba: '+e.message)}
+}
+
+/* ===== REKLAMACE ===== */
+var _reklamace=[],_selRekl=null;
+async function loadReklamace(){try{var r=await fetch('/api/reklamace');_reklamace=await r.json()}catch(e){_reklamace=JSON.parse(localStorage.getItem('reklamace')||'[]')}}
+function renderReklamace(){
+  var f=(document.getElementById('rekl-filter').value||'').toLowerCase(),sf=document.getElementById('rekl-stav-filter').value;
+  var list=_reklamace;
+  if(f)list=list.filter(function(r){return(r.cislo||'').toLowerCase().indexOf(f)>=0||(r.zakaznik||'').toLowerCase().indexOf(f)>=0||(r.zarizeni||'').toLowerCase().indexOf(f)>=0});
+  if(sf)list=list.filter(function(r){return r.stav===sf});
+  document.getElementById('rekl-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné reklamace</div>':list.map(function(r){return'<div class="item-card '+(_selRekl===r.id?'active':'')+'" onclick="_selRekl=\''+r.id+'\';renderReklamace()"><div class="item-head"><span class="item-num">'+r.cislo+'</span><span class="stav-chip '+stCls(r.stav)+'">'+(r.stav||'přijatá')+'</span></div><div class="item-sub">'+(r.zakaznik||'—')+' · '+(r.zarizeni||'—')+'</div><div class="item-meta">'+fmtDate(r.datumPrijmu)+(r.zarukaDo?' · Záruka do: '+fmtDate(r.zarukaDo):'')+'</div></div>'}).join('');
+  if(_selRekl)showReklDetail(_selRekl);
+}
+function showReklDetail(id){
+  var r=_reklamace.find(function(x){return x.id===id});if(!r){document.getElementById('rekl-detail').innerHTML='<div class="empty-msg">Vyberte reklamaci</div>';return}
+  var inWarranty=r.zarukaDo&&new Date(r.zarukaDo)>=new Date();
+  document.getElementById('rekl-detail').innerHTML='<div class="detail-header"><h2>'+r.cislo+'</h2><span class="stav-chip '+stCls(r.stav)+'">'+(r.stav||'přijatá')+'</span></div><div class="detail-grid"><div class="dfield"><label>Zákazník</label><span>'+(r.zakaznik||'—')+'</span></div><div class="dfield"><label>Zařízení</label><span>'+(r.zarizeni||'—')+'</span></div><div class="dfield"><label>Datum přijetí</label><span>'+fmtDate(r.datumPrijmu)+'</span></div><div class="dfield"><label>Datum vyřešení</label><span>'+fmtDate(r.datumVyreseni)+'</span></div><div class="dfield"><label>Záruka do</label><span style="'+(inWarranty?'color:var(--green);font-weight:600':'color:var(--err)')+'">'+fmtDate(r.zarukaDo)+(inWarranty?' (V záruce)':' (Po záruce)')+'</span></div><div class="dfield"><label>Technik</label><span>'+(r.technik||'—')+'</span></div><div class="dfield"><label>Náklady</label><span>'+fmtMoney(r.naklady||0)+'</span></div></div><div class="dfield full"><label>Popis závady</label><p>'+(r.opisZavady||r.popisZavady||'—')+'</p></div><div class="dfield full"><label>Řešení</label><p>'+(r.reseni||'—')+'</p></div><div class="dfield full"><label>Poznámka</label><p>'+(r.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeReklStav(\''+r.id+'\',this.value)"><option value="přijatá"'+(r.stav==='přijatá'?' selected':'')+'>Přijatá</option><option value="v řešení"'+(r.stav==='v řešení'?' selected':'')+'>V řešení</option><option value="vyřešená"'+(r.stav==='vyřešená'?' selected':'')+'>Vyřešená</option><option value="zamítnutá"'+(r.stav==='zamítnutá'?' selected':'')+'>Zamítnutá</option></select><button class="btn-action btn-edit" onclick="openReklamaceModal(\''+r.id+'\')">Upravit</button><button class="btn-action btn-del" onclick="deleteReklamace(\''+r.id+'\')">Smazat</button></div>';
+}
+function openReklamaceModal(eid){
+  var r=eid?_reklamace.find(function(x){return x.id===eid}):null;
+  document.getElementById('reklamace-modal-title').textContent=r?'Upravit reklamaci':'Nová reklamace';
+  document.getElementById('rekl-edit-id').value=eid||'';
+  if(!r){DataStore.getNextNumber('REK').then(function(c){document.getElementById('rekl-cislo').value=c})}else{document.getElementById('rekl-cislo').value=r.cislo}
+  document.getElementById('rekl-zakaznik').value=r?r.zakaznik:'';
+  document.getElementById('rekl-zarizeni').value=r?r.zarizeni:'';
+  document.getElementById('rekl-technik').value=r?r.technik:'';
+  document.getElementById('rekl-datum-prijmu').value=r&&r.datumPrijmu?toIDate(r.datumPrijmu):new Date().toISOString().split('T')[0];
+  document.getElementById('rekl-zaruka-do').value=r&&r.zarukaDo?toIDate(r.zarukaDo):'';
+  document.getElementById('rekl-popis-zavady').value=r?(r.opisZavady||r.popisZavady||''):'';
+  document.getElementById('rekl-stav').value=r?r.stav:'přijatá';
+  document.getElementById('rekl-naklady').value=r?r.naklady:0;
+  document.getElementById('rekl-reseni').value=r?r.reseni:'';
+  document.getElementById('rekl-poznamka-r').value=r?r.poznamka:'';
+  document.getElementById('reklamace-modal').style.display='flex';
+}
+function saveReklamace(e){
+  e.preventDefault();var id=document.getElementById('rekl-edit-id').value;
+  var data={cislo:document.getElementById('rekl-cislo').value,zakaznik:document.getElementById('rekl-zakaznik').value,zarizeni:document.getElementById('rekl-zarizeni').value,technik:document.getElementById('rekl-technik').value,datumPrijmu:document.getElementById('rekl-datum-prijmu').value?new Date(document.getElementById('rekl-datum-prijmu').value).toISOString():null,zarukaDo:document.getElementById('rekl-zaruka-do').value?new Date(document.getElementById('rekl-zaruka-do').value).toISOString():null,popisZavady:document.getElementById('rekl-popis-zavady').value,stav:document.getElementById('rekl-stav').value,naklady:Number(document.getElementById('rekl-naklady').value)||0,reseni:document.getElementById('rekl-reseni').value,poznamka:document.getElementById('rekl-poznamka-r').value};
+  if(id){DataStore.updateItem('reklamace',id,data);var r=_reklamace.find(function(x){return x.id===id});if(r)Object.assign(r,data)}else{data.id=gid();data.createdAt=new Date().toISOString();_reklamace.unshift(data);DataStore.saveItem('reklamace',data)}
+  closeModal('reklamace-modal');renderReklamace();
+}
+function changeReklStav(id,s){var r=_reklamace.find(function(x){return x.id===id});if(r){r.stav=s;if(s==='vyřešená')r.datumVyreseni=new Date().toISOString();DataStore.updateItem('reklamace',id,{stav:s,datumVyreseni:r.datumVyreseni});renderReklamace()}}
+function deleteReklamace(id){if(!confirm('Smazat reklamaci?'))return;_reklamace=_reklamace.filter(function(x){return x.id!==id});DataStore.deleteItem('reklamace',id);_selRekl=null;document.getElementById('rekl-detail').innerHTML='<div class="empty-msg">Vyberte reklamaci</div>';renderReklamace()}
+
+/* ===== DODAVATELÉ ===== */
+var _dodavatele=[];
+async function loadDodavatele(){try{var r=await fetch('/api/dodavatele');_dodavatele=await r.json()}catch(e){_dodavatele=JSON.parse(localStorage.getItem('dodavatele')||'[]')}}
+function renderDodavatele(){
+  var f=(document.getElementById('dod-filter').value||'').toLowerCase();
+  var list=_dodavatele;if(f)list=list.filter(function(d){return(d.nazev||'').toLowerCase().indexOf(f)>=0||(d.ico||'').toLowerCase().indexOf(f)>=0||(d.kategorie||'').toLowerCase().indexOf(f)>=0});
+  document.getElementById('dod-list').innerHTML=list.length===0?'<div class="empty-msg">Žádní dodavatelé</div>':'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--blue2)"><th style="padding:8px;text-align:left">Název</th><th style="text-align:left">IČO</th><th style="text-align:left">Kategorie</th><th style="text-align:left">Kontakt</th><th style="text-align:left">Telefon</th><th style="text-align:center">Hodnocení</th><th>Akce</th></tr></thead><tbody>'+list.map(function(d){var stars='★'.repeat(d.hodnoceni||0)+'☆'.repeat(5-(d.hodnoceni||0));return'<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px"><strong>'+escHtml(d.nazev)+'</strong>'+(d.web?'<br><a href="'+(d.web.startsWith('http')?d.web:'https://'+d.web)+'" target="_blank" style="font-size:11px;color:var(--blue)">'+d.web+'</a>':'')+'</td><td>'+(d.ico||'—')+'</td><td>'+(d.kategorie||'—')+'</td><td>'+(d.kontakt||d.email||'—')+'</td><td>'+(d.telefon||'—')+'</td><td style="text-align:center;color:var(--warn)">'+stars+'</td><td><button class="btn-action btn-edit" style="font-size:11px;padding:3px 8px" onclick="openDodavatelModal(\''+d.id+'\')">Edit</button> <button class="btn-action btn-del" style="font-size:11px;padding:3px 8px" onclick="deleteDodavatel(\''+d.id+'\')">×</button></td></tr>'}).join('')+'</tbody></table>';
+}
+function openDodavatelModal(eid){
+  var d=eid?_dodavatele.find(function(x){return x.id===eid}):null;
+  document.getElementById('dodavatel-modal-title').textContent=d?'Upravit dodavatele':'Nový dodavatel';
+  document.getElementById('dod-edit-id').value=eid||'';
+  document.getElementById('dod-nazev').value=d?d.nazev:'';
+  document.getElementById('dod-ico').value=d?d.ico:'';
+  document.getElementById('dod-dic').value=d?d.dic:'';
+  document.getElementById('dod-kategorie').value=d?d.kategorie:'jiné';
+  document.getElementById('dod-adresa').value=d?d.adresa:'';
+  document.getElementById('dod-web').value=d?d.web:'';
+  document.getElementById('dod-kontakt').value=d?d.kontakt:'';
+  document.getElementById('dod-email').value=d?d.email:'';
+  document.getElementById('dod-telefon').value=d?d.telefon:'';
+  document.getElementById('dod-hodnoceni').value=d?d.hodnoceni:3;
+  document.getElementById('dod-poznamka-d').value=d?d.poznamka:'';
+  document.getElementById('dodavatel-modal').style.display='flex';
+}
+function saveDodavatel(e){
+  e.preventDefault();var id=document.getElementById('dod-edit-id').value;
+  var data={nazev:document.getElementById('dod-nazev').value,ico:document.getElementById('dod-ico').value,dic:document.getElementById('dod-dic').value,kategorie:document.getElementById('dod-kategorie').value,adresa:document.getElementById('dod-adresa').value,web:document.getElementById('dod-web').value,kontakt:document.getElementById('dod-kontakt').value,email:document.getElementById('dod-email').value,telefon:document.getElementById('dod-telefon').value,hodnoceni:Number(document.getElementById('dod-hodnoceni').value)||3,poznamka:document.getElementById('dod-poznamka-d').value};
+  if(id){DataStore.updateItem('dodavatele',id,data);var d=_dodavatele.find(function(x){return x.id===id});if(d)Object.assign(d,data)}else{data.id=gid();data.createdAt=new Date().toISOString();_dodavatele.push(data);DataStore.saveItem('dodavatele',data)}
+  closeModal('dodavatel-modal');renderDodavatele();
+}
+function deleteDodavatel(id){if(!confirm('Smazat dodavatele?'))return;_dodavatele=_dodavatele.filter(function(x){return x.id!==id});DataStore.deleteItem('dodavatele',id);renderDodavatele()}
+async function lookupAresDod(){
+  var ico=document.getElementById('dod-ico').value;if(!ico){alert('Zadejte IČO');return}
+  try{var r=await fetch('https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/'+ico);var d=await r.json();
+  document.getElementById('dod-nazev').value=d.obchodniJmeno||'';
+  if(d.sidlo)document.getElementById('dod-adresa').value=[d.sidlo.textovaAdresa].filter(Boolean).join(', ')||'';
+  if(d.dic)document.getElementById('dod-dic').value=d.dic}catch(e){alert('ARES: '+e.message)}
+}
+
+/* ===== VOZIDLA ===== */
+var _vozidla=[];
+async function loadVozidla(){try{var r=await fetch('/api/vozidla');_vozidla=await r.json()}catch(e){_vozidla=JSON.parse(localStorage.getItem('vozidla')||'[]')}}
+function renderVozidla(){
+  // Alerts
+  var today=new Date().toISOString().split('T')[0];
+  var alerts=_vozidla.filter(function(v){return(v.stkDo&&v.stkDo<today)||(v.pojisteniDo&&v.pojisteniDo<today)});
+  document.getElementById('vozidla-alerts').innerHTML=alerts.length?alerts.map(function(v){var msg=[];if(v.stkDo&&v.stkDo<today)msg.push('STK prošlá');if(v.pojisteniDo&&v.pojisteniDo<today)msg.push('Pojištění prošlé');return'<div style="background:#fde8e8;border:1px solid #f5c6cb;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;color:#721c24"><strong>'+v.spz+'</strong> ('+v.nazev+'): '+msg.join(', ')+'</div>'}).join(''):'';
+  document.getElementById('vozidla-list').innerHTML=_vozidla.length===0?'<div class="empty-msg">Žádná vozidla</div>':'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:var(--blue2)"><th style="padding:8px;text-align:left">SPZ</th><th style="text-align:left">Název</th><th style="text-align:left">Typ</th><th style="text-align:left">Technik</th><th style="text-align:right">Km</th><th style="text-align:left">STK do</th><th style="text-align:left">Pojištění do</th><th style="text-align:center">Stav</th><th>Akce</th></tr></thead><tbody>'+_vozidla.map(function(v){var stkWarn=v.stkDo&&v.stkDo<today;var pojWarn=v.pojisteniDo&&v.pojisteniDo<today;return'<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-weight:700">'+v.spz+'</td><td>'+(v.nazev||'—')+'</td><td>'+(v.typ||'—')+'</td><td>'+(v.technik||'—')+'</td><td style="text-align:right">'+(v.kmStav||0).toLocaleString()+' km</td><td style="'+(stkWarn?'color:var(--err);font-weight:700':'')+'">'+fmtDate(v.stkDo)+'</td><td style="'+(pojWarn?'color:var(--err);font-weight:700':'')+'">'+fmtDate(v.pojisteniDo)+'</td><td style="text-align:center"><span class="stav-chip '+stCls(v.stav)+'">'+(v.stav||'aktivní')+'</span></td><td><button class="btn-action btn-edit" style="font-size:11px;padding:3px 8px" onclick="openVozidloModal(\''+v.id+'\')">Edit</button> <button class="btn-action btn-invoice" style="font-size:11px;padding:3px 8px" onclick="openTankovaniModal(\''+v.id+'\')">Tank</button> <button class="btn-action btn-del" style="font-size:11px;padding:3px 8px" onclick="deleteVozidlo(\''+v.id+'\')">×</button></td></tr>'}).join('')+'</tbody></table>';
+}
+function openVozidloModal(eid){
+  var v=eid?_vozidla.find(function(x){return x.id===eid}):null;
+  document.getElementById('vozidlo-modal-title').textContent=v?'Upravit vozidlo':'Nové vozidlo';
+  document.getElementById('voz-edit-id').value=eid||'';
+  document.getElementById('voz-spz').value=v?v.spz:'';
+  document.getElementById('voz-nazev').value=v?v.nazev:'';
+  document.getElementById('voz-typ').value=v?v.typ:'osobní';
+  document.getElementById('voz-technik').value=v?v.technik:'';
+  document.getElementById('voz-km').value=v?v.kmStav:0;
+  document.getElementById('voz-stav-v').value=v?v.stav:'aktivní';
+  document.getElementById('voz-stk').value=v&&v.stkDo?toIDate(v.stkDo):'';
+  document.getElementById('voz-pojisteni').value=v&&v.pojisteniDo?toIDate(v.pojisteniDo):'';
+  document.getElementById('voz-poznamka-v').value=v?v.poznamka:'';
+  document.getElementById('vozidlo-modal').style.display='flex';
+}
+function saveVozidlo(e){
+  e.preventDefault();var id=document.getElementById('voz-edit-id').value;
+  var data={spz:document.getElementById('voz-spz').value,nazev:document.getElementById('voz-nazev').value,typ:document.getElementById('voz-typ').value,technik:document.getElementById('voz-technik').value,kmStav:Number(document.getElementById('voz-km').value)||0,stav:document.getElementById('voz-stav-v').value,stkDo:document.getElementById('voz-stk').value||null,pojisteniDo:document.getElementById('voz-pojisteni').value||null,poznamka:document.getElementById('voz-poznamka-v').value};
+  if(id){DataStore.updateItem('vozidla',id,data);var v=_vozidla.find(function(x){return x.id===id});if(v)Object.assign(v,data)}else{data.id=gid();data.createdAt=new Date().toISOString();_vozidla.push(data);DataStore.saveItem('vozidla',data)}
+  closeModal('vozidlo-modal');renderVozidla();
+}
+function deleteVozidlo(id){if(!confirm('Smazat vozidlo?'))return;_vozidla=_vozidla.filter(function(x){return x.id!==id});DataStore.deleteItem('vozidla',id);renderVozidla()}
+function openTankovaniModal(vozId){
+  document.getElementById('tank-voz-id').value=vozId;
+  document.getElementById('tank-datum').value=new Date().toISOString().split('T')[0];
+  document.getElementById('tank-litry').value=0;document.getElementById('tank-cena').value=0;
+  var v=_vozidla.find(function(x){return x.id===vozId});
+  document.getElementById('tank-km').value=v?v.kmStav:0;
+  document.getElementById('tank-poznamka').value='';
+  document.getElementById('tankovani-modal').style.display='flex';
+}
+function saveTankovani(){
+  var vozId=document.getElementById('tank-voz-id').value;
+  var data={id:gid(),vozidloId:vozId,datum:document.getElementById('tank-datum').value,litry:Number(document.getElementById('tank-litry').value)||0,cena:Number(document.getElementById('tank-cena').value)||0,kmStav:Number(document.getElementById('tank-km').value)||0,poznamka:document.getElementById('tank-poznamka').value,createdAt:new Date().toISOString()};
+  DataStore.saveItem('vozidla_tankovani',data);
+  // Update km
+  var v=_vozidla.find(function(x){return x.id===vozId});if(v&&data.kmStav>v.kmStav){v.kmStav=data.kmStav;DataStore.updateItem('vozidla',vozId,{kmStav:data.kmStav})}
+  closeModal('tankovani-modal');renderVozidla();
+}
+
+/* ===== CRM / KONTAKTNÍ DENÍK ===== */
+function openCrmPanel(zakaznikId){
+  document.getElementById('crm-zakaznik-id').value=zakaznikId;
+  document.getElementById('crm-datum').value=new Date().toISOString().split('T')[0];
+  document.getElementById('crm-typ').value='poznámka';
+  document.getElementById('crm-predmet').value='';document.getElementById('crm-obsah').value='';
+  // Load existing CRM records
+  fetch('/api/crm/'+zakaznikId).then(function(r){return r.json()}).then(function(records){
+    var zak=_zakaznici.find(function(z){return z.id===zakaznikId});
+    var html='<h4 style="margin-bottom:12px">CRM – '+(zak?zak.nazev:'')+'</h4>';
+    if(records.length>0){
+      html+='<div style="max-height:300px;overflow-y:auto;margin-bottom:12px">'+records.map(function(r){return'<div style="background:var(--blue2);border-radius:8px;padding:10px;margin-bottom:6px;font-size:12px"><div style="display:flex;justify-content:space-between"><span class="stav-chip st-new" style="font-size:10px">'+(r.typ||'poznámka')+'</span><span style="color:var(--muted)">'+fmtDate(r.datum)+'</span></div><div style="font-weight:600;margin-top:4px">'+(r.predmet||'')+'</div><div style="color:var(--muted);margin-top:2px">'+(r.obsah||'')+'</div></div>'}).join('')+'</div>';
+    }else{html+='<p style="color:var(--muted);font-size:12px;margin-bottom:12px">Zatím žádné záznamy.</p>'}
+    html+='<button class="btn-action btn-edit" onclick="document.getElementById(\'crm-modal\').style.display=\'flex\'">+ Nový záznam</button>';
+    // Show in a temporary panel
+    alert('CRM záznamy: '+(records.length||0)+'\nPro přidání nového záznamu použijte CRM modal.');
+    document.getElementById('crm-modal').style.display='flex';
+  }).catch(function(){document.getElementById('crm-modal').style.display='flex'});
+}
+function saveCrmZaznam(){
+  var data={id:gid(),zakaznikId:document.getElementById('crm-zakaznik-id').value,typ:document.getElementById('crm-typ').value,predmet:document.getElementById('crm-predmet').value,obsah:document.getElementById('crm-obsah').value,datum:document.getElementById('crm-datum').value,autor:'Progresklima',createdAt:new Date().toISOString()};
+  DataStore.saveItem('crm_zaznamy',data);
+  closeModal('crm-modal');alert('CRM záznam uložen!');
+}
+
+/* ===== GANTT TIMELINE ===== */
+var _ganttVisible=false;
+function toggleGantt(){
+  _ganttVisible=!_ganttVisible;
+  document.getElementById('gantt-view').style.display=_ganttVisible?'block':'none';
+  if(_ganttVisible)renderGantt();
+}
+function renderGantt(){
+  var active=_zakazky.filter(function(z){return z.stav!=='zrušená'});
+  if(!active.length){document.getElementById('gantt-view').innerHTML='<div class="empty-msg">Žádné zakázky</div>';return}
+  // Find date range
+  var now=new Date(),minD=new Date(now),maxD=new Date(now);
+  active.forEach(function(z){
+    var cd=new Date(z.createdAt||now);if(cd<minD)minD=cd;
+    var td=z.termin?new Date(z.termin):new Date(cd.getTime()+14*86400000);if(td>maxD)maxD=td;
+  });
+  minD.setDate(minD.getDate()-2);maxD.setDate(maxD.getDate()+7);
+  var totalDays=Math.ceil((maxD-minD)/86400000)||30;
+  var html='<div style="position:relative;min-width:'+(totalDays*20)+'px;font-size:11px">';
+  // Header - dates
+  html+='<div style="display:flex;border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:4px">';
+  for(var di=0;di<totalDays;di++){var dd=new Date(minD.getTime()+di*86400000);if(dd.getDate()===1||di===0||dd.getDay()===1)html+='<div style="min-width:20px;flex-shrink:0;font-size:9px;color:var(--muted);position:absolute;left:'+(di*20)+'px">'+dd.getDate()+'.'+(dd.getMonth()+1)+'</div>'}
+  html+='</div>';
+  // Bars
+  active.forEach(function(z){
+    var cd=new Date(z.createdAt||now);
+    var td=z.termin?new Date(z.termin):new Date(cd.getTime()+14*86400000);
+    var left=Math.round((cd-minD)/86400000)*20;
+    var width=Math.max(Math.round((td-cd)/86400000)*20,40);
+    var color=z.stav==='dokončená'?'var(--green)':z.stav==='v realizaci'?'var(--blue)':'var(--warn)';
+    html+='<div style="position:relative;height:24px;margin:2px 0"><div style="position:absolute;left:'+left+'px;width:'+width+'px;height:20px;background:'+color+';border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;cursor:pointer" title="'+z.cislo+' - '+(z.zakaznik||'')+'" onclick="selectZak(\''+z.id+'\')">'+z.cislo+' '+(z.zakaznik||'').substring(0,15)+'</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('gantt-view').innerHTML=html;
+}
+
+/* ===== TECHNICIAN STATS ===== */
+async function renderTechStats(){
+  var data;
+  try{var r=await fetch('/api/stats/technicians');data=await r.json()}catch(e){data=[]}
+  if(!data||!data.length){document.getElementById('tech-stats-cards').innerHTML='<div class="empty-msg">Žádná data</div>';document.getElementById('tech-stats-table').innerHTML='';return}
+  document.getElementById('tech-stats-cards').innerHTML=data.map(function(t){var pct=t.zakazkyTotal?Math.round(t.zakazkyDone/t.zakazkyTotal*100):0;return'<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px"><div style="font-weight:700;font-size:15px;margin-bottom:8px">'+t.technik+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px"><div><span style="color:var(--muted)">Zakázky celkem</span><div style="font-size:20px;font-weight:700">'+t.zakazkyTotal+'</div></div><div><span style="color:var(--muted)">Dokončené</span><div style="font-size:20px;font-weight:700;color:var(--green)">'+t.zakazkyDone+'</div></div><div><span style="color:var(--muted)">Hodiny</span><div style="font-size:20px;font-weight:700;color:var(--blue)">'+t.hodiny.toFixed(1)+'</div></div><div><span style="color:var(--muted)">Reklamace</span><div style="font-size:20px;font-weight:700;color:'+(t.reklamace>0?'var(--err)':'var(--green)')+'">'+t.reklamace+'</div></div></div><div style="margin-top:10px;background:var(--bg);border-radius:8px;height:8px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:var(--green);border-radius:8px"></div></div><div style="text-align:right;font-size:10px;color:var(--muted);margin-top:2px">'+pct+'% dokončených</div></div>'}).join('');
+  document.getElementById('tech-stats-table').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:12px"><thead><tr style="background:var(--blue2)"><th style="padding:8px;text-align:left">Technik</th><th style="text-align:right">Zakázky</th><th style="text-align:right">Dokončené</th><th style="text-align:right">Aktivní</th><th style="text-align:right">Hodiny</th><th style="text-align:right">Reklamace</th><th style="text-align:right">Úspěšnost</th></tr></thead><tbody>'+data.map(function(t){var pct=t.zakazkyTotal?Math.round(t.zakazkyDone/t.zakazkyTotal*100):0;return'<tr style="border-bottom:1px solid var(--border)"><td style="padding:8px;font-weight:600">'+t.technik+'</td><td style="text-align:right">'+t.zakazkyTotal+'</td><td style="text-align:right;color:var(--green)">'+t.zakazkyDone+'</td><td style="text-align:right">'+t.zakazkyActive+'</td><td style="text-align:right">'+t.hodiny.toFixed(1)+' h</td><td style="text-align:right;color:'+(t.reklamace>0?'var(--err)':'var(--green)')+'">'+t.reklamace+'</td><td style="text-align:right;font-weight:600">'+pct+' %</td></tr>'}).join('')+'</tbody></table>';
+}
+
+/* ===== ISDOC EXPORT ===== */
+function exportIsdoc(fakId){
+  window.open('/api/faktury/'+fakId+'/isdoc','_blank');
+}
+
+/* ===== AUTO BACKUP ===== */
+async function runAutoBackup(){
+  try{var r=await fetch('/api/backup/auto',{method:'POST'});var res=await r.json();alert('Záloha vytvořena: '+(res.path||'OK'))}catch(e){alert('Chyba: '+e.message)}
+}
+
+/* ===== QR KÓDY SKLADU ===== */
+async function showSkladQr(skladId){
+  try{var r=await fetch('/api/sklad/'+skladId+'/qr');var data=await r.json();
+  if(typeof QRCode!=='undefined'){var canvas=document.createElement('canvas');await QRCode.toCanvas(canvas,data.text,{width:200});
+  var w=window.open('','_blank');w.document.write('<html><head><title>QR štítek</title></head><body style="text-align:center;font-family:sans-serif"><h2>'+data.item.nazev+'</h2><p>Kód: '+(data.item.kod||'—')+'</p>'+canvas.outerHTML+'<p style="font-size:12px">'+data.text+'</p><button onclick="window.print()">Tisk</button></body></html>')}
+  }catch(e){alert('Chyba: '+e.message)}
+}
+
 // Init: try API -> localStorage -> in-memory (sample data)
 // SMS char counter
 var smsEl=document.getElementById('sms-zprava');if(smsEl)smsEl.addEventListener('input',updateSmsChars);
 
 DataStore.init().then(function(){
-  loadZakaznici();loadCenik();loadSablony();loadSklad();loadServisHistorie();loadDochazka();loadPravidelne();loadWorkflow();
+  loadZakaznici();loadCenik();loadSablony();loadSklad();loadServisHistorie();loadDochazka();loadPravidelne();loadWorkflow();loadNabidky();loadReklamace();loadDodavatele();loadVozidla();
   renderObjednavky();renderFaktury();renderZakazky();renderPrijemky();renderDashboard();
   // Setup autocompletes after data loaded
   setTimeout(function(){
@@ -2467,6 +2886,10 @@ DataStore.init().then(function(){
       document.getElementById('zak-zakaznik').value=z.nazev;
       document.getElementById('zak-kontakt').value=z.kontakt||z.email||z.telefon||'';
       document.getElementById('zak-adresa').value=z.adresa||'';
+    });
+    setupAutocomplete('nab-zakaznik','nab-ac-list',function(z){
+      document.getElementById('nab-zakaznik').value=z.nazev;
+      document.getElementById('nab-kontakt').value=z.kontakt||z.email||z.telefon||'';
     });
   },500);
 }).catch(function(){
