@@ -85,16 +85,6 @@ function init() {
       polozky TEXT DEFAULT '[]'
     );
 
-    CREATE TABLE IF NOT EXISTS audit_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      entity_type TEXT NOT NULL,
-      entity_id TEXT NOT NULL,
-      action TEXT NOT NULL,
-      changes TEXT,
-      user_name TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-
     CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
@@ -184,31 +174,6 @@ function init() {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
-    CREATE TABLE IF NOT EXISTS dochazka (
-      id TEXT PRIMARY KEY,
-      technik TEXT NOT NULL,
-      zakazka_id TEXT,
-      datum TEXT NOT NULL,
-      hodiny REAL DEFAULT 0,
-      popis TEXT,
-      typ TEXT DEFAULT 'práce',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS pravidelne_zakazky (
-      id TEXT PRIMARY KEY,
-      zakaznik_id TEXT,
-      zakaznik TEXT,
-      nazev TEXT NOT NULL,
-      popis TEXT,
-      technik TEXT,
-      interval_mesice INTEGER DEFAULT 12,
-      posledni_datum TEXT,
-      pristi_datum TEXT,
-      aktivni INTEGER DEFAULT 1,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-
     CREATE TABLE IF NOT EXISTS upominky (
       id TEXT PRIMARY KEY,
       faktura_id TEXT NOT NULL,
@@ -216,18 +181,6 @@ function init() {
       datum TEXT,
       castka REAL DEFAULT 0,
       stav TEXT DEFAULT 'vytvořena',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS workflow_rules (
-      id TEXT PRIMARY KEY,
-      nazev TEXT NOT NULL,
-      trigger_entity TEXT NOT NULL,
-      trigger_action TEXT NOT NULL,
-      trigger_condition TEXT,
-      action_type TEXT NOT NULL,
-      action_data TEXT DEFAULT '{}',
-      aktivni INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     );
 
@@ -409,10 +362,6 @@ const colMap = {
   minMnozstvi: 'min_mnozstvi', cenaNakup: 'cena_nakup',
   cenaProdej: 'cena_prodej', skladId: 'sklad_id',
   zakaznikId: 'zakaznik_id', typZasahu: 'typ_zasahu',
-  intervalMesice: 'interval_mesice', posledniDatum: 'posledni_datum',
-  pristiDatum: 'pristi_datum', triggerEntity: 'trigger_entity',
-  triggerAction: 'trigger_action', triggerCondition: 'trigger_condition',
-  actionType: 'action_type', actionData: 'action_data',
   cisloUpominky: 'cislo_upominky', fakturaId: 'faktura_id',
   platnostDo: 'platnost_do', opisZavady: 'popis_zavady',
   datumVyreseni: 'datum_vyreseni', zarukaDo: 'zaruka_do',
@@ -484,28 +433,6 @@ function search(query) {
   pris.forEach(r => { r._type = 'prijemky'; results.push(fromDb(parseRow(r))); });
 
   return results;
-}
-
-// ===== AUDIT LOG =====
-function addAuditLog(entityType, entityId, action, changes, userName) {
-  db.prepare(`INSERT INTO audit_log (entity_type, entity_id, action, changes, user_name, created_at)
-    VALUES (?, ?, ?, ?, ?, datetime('now'))`).run(
-    entityType, entityId, action, JSON.stringify(changes || {}), userName || 'System'
-  );
-}
-
-function getAuditLog(entityType, entityId) {
-  const params = [];
-  let sql = 'SELECT * FROM audit_log WHERE 1=1';
-  if (entityType) { sql += ' AND entity_type = ?'; params.push(entityType); }
-  if (entityId) { sql += ' AND entity_id = ?'; params.push(entityId); }
-  sql += ' ORDER BY created_at DESC LIMIT 200';
-  return db.prepare(sql).all(params).map(r => {
-    if (r.changes && typeof r.changes === 'string') {
-      try { r.changes = JSON.parse(r.changes); } catch(e) { r.changes = {}; }
-    }
-    return r;
-  });
 }
 
 // ===== NOTIFICATIONS =====
@@ -588,7 +515,6 @@ function getExportData() {
     faktury: getAll('faktury').map(fromDb),
     zakazky: getAll('zakazky').map(fromDb),
     prijemky: getAll('prijemky').map(fromDb),
-    audit_log: getAuditLog(),
     exportedAt: new Date().toISOString()
   };
 }
@@ -670,83 +596,6 @@ function getCashFlow() {
   return months;
 }
 
-// ===== PRAVIDELNÉ ZAKÁZKY =====
-function checkPravidelneZakazky() {
-  const today = new Date().toISOString().split('T')[0];
-  const due = db.prepare("SELECT * FROM pravidelne_zakazky WHERE aktivni = 1 AND (pristi_datum IS NULL OR pristi_datum <= ?)").all(today);
-  const created = [];
-  due.forEach(pz => {
-    const cislo = getNextNumber('ZAK');
-    const zakId = require('crypto').randomUUID();
-    insert('zakazky', {
-      id: zakId, cislo, zakaznik: pz.zakaznik || '', kontakt: '', adresa: '',
-      technik: pz.technik || '', stav: 'nová', created_at: new Date().toISOString(),
-      popis: pz.popis || pz.nazev, termin: null, priorita: 'normální'
-    });
-    // Update next date
-    const nextDate = new Date();
-    nextDate.setMonth(nextDate.getMonth() + (pz.interval_mesice || 12));
-    db.prepare('UPDATE pravidelne_zakazky SET posledni_datum = ?, pristi_datum = ? WHERE id = ?').run(today, nextDate.toISOString().split('T')[0], pz.id);
-    addNotification('pravidelna_zakazka', `Pravidelná zakázka: ${pz.nazev}`, `Vytvořena zakázka ${cislo} pro ${pz.zakaznik || ''}`, 'zakazky', zakId);
-    created.push({ id: zakId, cislo, nazev: pz.nazev });
-  });
-  return created;
-}
-
-// ===== WORKFLOW ENGINE =====
-function executeWorkflow(entityType, action, entityData) {
-  const rules = db.prepare("SELECT * FROM workflow_rules WHERE trigger_entity = ? AND trigger_action = ? AND aktivni = 1").all(entityType, action);
-  const results = [];
-  rules.forEach(rule => {
-    try {
-      let condOk = true;
-      if (rule.trigger_condition) {
-        const cond = JSON.parse(rule.trigger_condition);
-        Object.keys(cond).forEach(k => {
-          if (entityData[k] !== cond[k]) condOk = false;
-        });
-      }
-      if (!condOk) return;
-      const actionData = JSON.parse(rule.action_data || '{}');
-      if (rule.action_type === 'create_zakazka') {
-        const cislo = getNextNumber('ZAK');
-        const zakId = require('crypto').randomUUID();
-        insert('zakazky', {
-          id: zakId, cislo, zakaznik: entityData.zakaznik || '', kontakt: entityData.kontakt || '',
-          adresa: actionData.adresa || '', technik: actionData.technik || '',
-          stav: 'nová', created_at: new Date().toISOString(),
-          popis: actionData.popis || entityData.popis || '', termin: null, priorita: actionData.priorita || 'normální'
-        });
-        results.push({ rule: rule.nazev, action: 'created_zakazka', id: zakId, cislo });
-      } else if (rule.action_type === 'create_faktura') {
-        const cislo = getNextNumber('FAK');
-        const fakId = require('crypto').randomUUID();
-        insert('faktury', {
-          id: fakId, cislo, zakaznik: entityData.zakaznik || '', ico: entityData.ico || '',
-          dic: entityData.dic || '', adresa: entityData.adresa || '',
-          castka_bez_dph: entityData.castka || 0, dph_sazba: 21,
-          castka: Math.round((entityData.castka || 0) * 1.21),
-          vs: cislo.replace(/\D/g, ''), platba: 'převodem',
-          stav: 'vystavená', splatnost: null,
-          created_at: new Date().toISOString(), created_by: 'Workflow',
-          poznamka: 'Automaticky vytvořeno workflow', polozky: '[]',
-          objednavka_id: entityData.id || null, zakazka_id: null
-        });
-        results.push({ rule: rule.nazev, action: 'created_faktura', id: fakId, cislo });
-      } else if (rule.action_type === 'notification') {
-        addNotification('workflow', actionData.title || rule.nazev, actionData.message || '', entityType, entityData.id);
-        results.push({ rule: rule.nazev, action: 'notification' });
-      } else if (rule.action_type === 'change_stav') {
-        if (actionData.target_entity && actionData.new_stav) {
-          update(actionData.target_entity, entityData.id, { stav: actionData.new_stav });
-          results.push({ rule: rule.nazev, action: 'changed_stav', stav: actionData.new_stav });
-        }
-      }
-    } catch (e) { /* skip broken rules */ }
-  });
-  return results;
-}
-
 // ===== ISDOC EXPORT (for accounting software) =====
 function generateIsdoc(fakturaId) {
   const f = fromDb(getById('faktury', fakturaId));
@@ -824,31 +673,6 @@ function autoBackup() {
   return dest;
 }
 
-// ===== TECHNICIAN STATS =====
-function getTechnicianStats() {
-  const zakazky = db.prepare("SELECT * FROM zakazky").all().map(fromDb);
-  const doch = db.prepare("SELECT * FROM dochazka").all().map(fromDb);
-  const techMap = {};
-  zakazky.forEach(z => {
-    const t = z.technik || 'Nepřiřazeno';
-    if (!techMap[t]) techMap[t] = { zakazkyTotal: 0, zakazkyDone: 0, zakazkyActive: 0, hodiny: 0, reklamace: 0 };
-    techMap[t].zakazkyTotal++;
-    if (z.stav === 'dokončená') techMap[t].zakazkyDone++;
-    else if (z.stav !== 'zrušená') techMap[t].zakazkyActive++;
-  });
-  doch.forEach(d => {
-    const t = d.technik || '?';
-    if (!techMap[t]) techMap[t] = { zakazkyTotal: 0, zakazkyDone: 0, zakazkyActive: 0, hodiny: 0, reklamace: 0 };
-    techMap[t].hodiny += d.hodiny || 0;
-  });
-  const rekl = db.prepare("SELECT * FROM reklamace").all().map(fromDb);
-  rekl.forEach(r => {
-    const t = r.technik || '?';
-    if (techMap[t]) techMap[t].reklamace++;
-  });
-  return Object.keys(techMap).map(t => ({ technik: t, ...techMap[t] }));
-}
-
 // ===== NABÍDKA → OBJEDNÁVKA =====
 function convertNabidkaToObj(nabidkaId) {
   const n = fromDb(getById('nabidky', nabidkaId));
@@ -870,12 +694,10 @@ module.exports = {
   init, getAll: getAllMapped, getById: (t, id) => fromDb(getById(t, id)),
   insert: insertMapped, update: updateMapped, remove,
   getNextNumber, search,
-  addAuditLog, getAuditLog,
   addNotification, getNotifications, markNotificationRead, markAllNotificationsRead,
   getDashboardStats,
   backupDatabase, getExportData, importData,
   skladPohyb, getSkladPohyby, getSkladLowStock,
   generateUpominky, getCashFlow,
-  checkPravidelneZakazky, executeWorkflow,
-  generateIsdoc, autoBackup, getTechnicianStats, convertNabidkaToObj
+  generateIsdoc, autoBackup, convertNabidkaToObj
 };

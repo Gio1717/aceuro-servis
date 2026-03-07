@@ -47,15 +47,6 @@ app.get('/api/next-number/:prefix', (req, res) => {
   }
 });
 
-// ===== AUDIT LOG =====
-app.get('/api/audit-log', (req, res) => {
-  try {
-    res.json(db.getAuditLog(req.query.entityType, req.query.entityId));
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ===== NOTIFICATIONS =====
 app.get('/api/notifications', (req, res) => {
   try {
@@ -172,25 +163,10 @@ app.post('/api/fio/match', (req, res) => {
       const fak = db.getById('faktury', m.fakturaId);
       if (fak) {
         db.update('faktury', m.fakturaId, { stav: 'zaplacená' });
-        db.addAuditLog('faktury', m.fakturaId, 'auto_paid', { vs: m.vs, amount: m.amount }, 'FIO API');
         results.push({ fakturaId: m.fakturaId, status: 'matched' });
       }
     });
     res.json({ matched: results });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ===== PRAVIDELNÉ ZAKÁZKY (check & generate) =====
-app.post('/api/pravidelne-zakazky/check', (req, res) => {
-  try { res.json(db.checkPravidelneZakazky()); }
-  catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ===== WORKFLOW =====
-app.post('/api/workflow/execute', (req, res) => {
-  try {
-    const { entityType, action, entityData } = req.body;
-    res.json(db.executeWorkflow(entityType, action, entityData));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -208,18 +184,6 @@ app.get('/api/fotodokumentace/zakazka/:id', (req, res) => {
   try {
     const rows = db.getAll('fotodokumentace').filter(f => f.zakazkaId === req.params.id || f.zakazka_id === req.params.id);
     res.json(rows);
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ===== SMS (via external gateway placeholder) =====
-app.post('/api/sms/send', (req, res) => {
-  try {
-    const { telefon, zprava } = req.body;
-    if (!telefon || !zprava) return res.status(400).json({ error: 'telefon and zprava required' });
-    // Log the SMS attempt (actual sending would use a real SMS gateway)
-    db.addAuditLog('sms', telefon, 'send', { telefon, zprava, status: 'queued' }, 'System');
-    db.addNotification('sms', 'SMS odesláno', `Na ${telefon}: ${zprava.substring(0, 50)}...`, null, null);
-    res.json({ ok: true, status: 'queued', message: 'SMS zařazeno k odeslání (nakonfigurujte SMS bránu)' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -256,12 +220,6 @@ app.post('/api/backup/auto', (req, res) => {
     const dest = db.autoBackup();
     res.json({ ok: true, path: dest });
   } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ===== TECHNICIAN STATS =====
-app.get('/api/stats/technicians', (req, res) => {
-  try { res.json(db.getTechnicianStats()); }
-  catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ===== NABÍDKA → OBJEDNÁVKA =====
@@ -301,7 +259,7 @@ app.get('/api/sklad/:id/qr', (req, res) => {
 
 // Generic CRUD routes for each entity
 const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky', 'zakaznici', 'cenik', 'sablony',
-  'sklad', 'sklad_pohyby', 'servis_historie', 'dochazka', 'pravidelne_zakazky', 'upominky', 'workflow_rules', 'fotodokumentace', 'zalohove_faktury',
+  'sklad', 'sklad_pohyby', 'servis_historie', 'upominky', 'fotodokumentace', 'zalohove_faktury',
   'nabidky', 'reklamace', 'dodavatele', 'vozidla', 'vozidla_tankovani', 'crm_zaznamy'];
 
 entities.forEach(entity => {
@@ -329,25 +287,6 @@ entities.forEach(entity => {
   app.post(`/api/${entity}`, (req, res) => {
     try {
       const item = db.insert(entity, req.body);
-      // Audit log
-      db.addAuditLog(entity, req.body.id, 'create', req.body, req.body.createdBy || 'System');
-      // Notification for new zakázky assigned to a technician
-      if (entity === 'zakazky' && req.body.technik && req.body.technik !== 'Nepřiřazeno') {
-        db.addNotification('zakazka_nova', 'Nová zakázka: ' + (req.body.cislo || ''),
-          'Byla vám přiřazena zakázka ' + (req.body.cislo || '') + ' - ' + (req.body.popis || ''),
-          'zakazky', req.body.id, req.body.technik);
-      }
-      // Notification for overdue invoices
-      if (entity === 'faktury' && req.body.splatnost) {
-        const spl = new Date(req.body.splatnost);
-        if (spl < new Date()) {
-          db.addNotification('faktura_po_splatnosti', 'Faktura po splatnosti: ' + (req.body.cislo || ''),
-            'Faktura ' + (req.body.cislo || '') + ' pro ' + (req.body.zakaznik || '') + ' je po splatnosti!',
-            'faktury', req.body.id);
-        }
-      }
-      // Execute workflow rules
-      try { db.executeWorkflow(entity, 'create', req.body); } catch(we) {}
       res.status(201).json(item);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -357,18 +296,7 @@ entities.forEach(entity => {
   // Update
   app.put(`/api/${entity}/:id`, (req, res) => {
     try {
-      const oldItem = db.getById(entity, req.params.id);
       const item = db.update(entity, req.params.id, req.body);
-      // Audit log
-      db.addAuditLog(entity, req.params.id, 'update', { old: oldItem, new: req.body }, req.body.updatedBy || 'System');
-      // Execute workflow rules
-      try { db.executeWorkflow(entity, 'update', Object.assign({}, oldItem, req.body, { id: req.params.id })); } catch(we) {}
-      // Notification: zakázka state change
-      if (entity === 'zakazky' && req.body.stav && oldItem && oldItem.stav !== req.body.stav) {
-        db.addNotification('zakazka_stav', 'Zakázka ' + (oldItem.cislo || '') + ': ' + req.body.stav,
-          'Stav zakázky ' + (oldItem.cislo || '') + ' změněn na: ' + req.body.stav,
-          'zakazky', req.params.id, oldItem.technik);
-      }
       res.json(item);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -378,8 +306,6 @@ entities.forEach(entity => {
   // Delete
   app.delete(`/api/${entity}/:id`, (req, res) => {
     try {
-      const oldItem = db.getById(entity, req.params.id);
-      db.addAuditLog(entity, req.params.id, 'delete', oldItem, 'System');
       db.remove(entity, req.params.id);
       res.json({ ok: true });
     } catch (e) {
