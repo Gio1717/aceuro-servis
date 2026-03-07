@@ -162,7 +162,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
     <button class="tab-btn" data-tab="objednavky" onclick="switchTab('objednavky')">Objednávky</button>
     <button class="tab-btn" data-tab="faktury-prijate" onclick="switchTab('faktury-prijate')">Faktury přijaté</button>
     <button class="tab-btn" data-tab="faktury-vydane" onclick="switchTab('faktury-vydane')">Faktury vydané</button>
-    <button class="tab-btn" data-tab="zakazky" onclick="switchTab('zakazky')">Zakázky</button>
     <button class="tab-btn" data-tab="prijemky" onclick="switchTab('prijemky')">Příjemky</button>
     <button class="tab-btn" data-tab="vykaz" onclick="switchTab('vykaz')">Výkaz výměr</button>
   </div>
@@ -175,8 +174,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
         <div class="stat-card orange"><div class="label">Nezaplacené faktury</div><div class="val" id="dash-fak-nezaplacene">0</div></div>
         <div class="stat-card red"><div class="label">Po splatnosti</div><div class="val" id="dash-fak-splatnost">0</div></div>
         <div class="stat-card green"><div class="label">Vydané celkem</div><div class="val" id="dash-fak-celkem">0 Kč</div></div>
-        <div class="stat-card"><div class="label">Aktivní zakázky</div><div class="val" id="dash-zak-aktivni">0</div></div>
-        <div class="stat-card"><div class="label">Zakázky celkem</div><div class="val" id="dash-zak-celkem">0</div></div>
+        <div class="stat-card"><div class="label">Přijaté celkem</div><div class="val" id="dash-fp-celkem">0 Kč</div></div>
       </div>
       <h3>Poslední aktivita</h3>
       <table class="recent-tbl"><thead><tr><th>Typ</th><th>Číslo</th><th>Dodavatel</th><th>Stav</th></tr></thead><tbody id="dash-recent"></tbody></table>
@@ -218,13 +216,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
       <div class="list-scroll" id="fv-list"></div>
     </div>
     <div class="detail-panel" id="fv-detail"><div class="empty-msg">Vyberte vydanou fakturu ze seznamu vlevo</div></div>
-  </div></div>
-  <div class="tab-panel" id="tab-zakazky"><div class="split-layout">
-    <div class="list-panel">
-      <div class="list-toolbar"><input type="text" id="zak-filter" placeholder="Hledat..." oninput="renderZakazky()"></div>
-      <div class="list-scroll" id="zak-list"></div>
-    </div>
-    <div class="detail-panel" id="zak-detail"><div class="empty-msg">Vyberte zakázku ze seznamu vlevo</div></div>
   </div></div>
   <!-- PRIJEMKY TAB -->
   <div class="tab-panel" id="tab-prijemky"><div class="split-layout">
@@ -368,13 +359,6 @@ var _prijemky=[
 {id:gid(),cislo:'PRI-2026-0001',objednavkaId:'id-104',zakaznik:'ELEKTRODESIGN s.r.o.',datumPrijmu:d(10),stav:'naskladněno',createdAt:d(10),createdBy:'Petr Svoboda',polozky:[{nazev:'Filtr kazetový F7 287x592x48',mnozstviObj:20,mnozstviPrijato:20,cena:450},{nazev:'Těsnící páska VKT 50mm',mnozstviObj:10,mnozstviPrijato:10,cena:180},{nazev:'Servisní sada DUPLEX 370',mnozstviObj:2,mnozstviPrijato:2,cena:1950}],poznamka:'Vše dodáno kompletně'},
 {id:gid(),cislo:'PRI-2026-0002',objednavkaId:'id-102',zakaznik:'Lindab s.r.o.',datumPrijmu:d(3),stav:'zkontrolováno',createdAt:d(3),createdBy:'Jan Novák',polozky:[{nazev:'Spiro potrubí 200mm 3m',mnozstviObj:40,mnozstviPrijato:30,cena:980},{nazev:'Spiro potrubí 160mm 3m',mnozstviObj:25,mnozstviPrijato:25,cena:750},{nazev:'Koleno 90° 200mm',mnozstviObj:20,mnozstviPrijato:20,cena:420}],poznamka:'Chybí 10ks spiro 200mm — dodávka příští týden'}
 ];
-var _zakazky=[
-{id:gid(),cislo:'ZAK-2026-0101',zakaznik:'Bytový dům Vinohrady',kontakt:'SVJ Vinohrady, +420 602 555 111',adresa:'Korunní 88, Praha 10',technik:'Martin Kučera',stav:'v realizaci',createdAt:d(15),popis:'Instalace 18x split klimatizace Sinclair'},
-{id:gid(),cislo:'ZAK-2026-0102',zakaznik:'Rezidence Karlín',kontakt:'Ing. Dvořák, +420 608 222 333',adresa:'Křižíkova 42, Praha 8',technik:'Tomáš Horák',stav:'nová',createdAt:d(10),popis:'Montáž VZT s rekuperací DUPLEX 370'},
-{id:gid(),cislo:'ZAK-2026-0103',zakaznik:'Admin. budova Brno-Slatina',kontakt:'fm@slatina-office.cz',adresa:'Tuřanka 1, Brno',technik:'Pavel Černý',stav:'v realizaci',createdAt:d(20),popis:'Kompletní VZT - rozvody Lindab spiro, regulace'},
-{id:gid(),cislo:'ZAK-2026-0104',zakaznik:'ZŠ Hostivař',kontakt:'Ředitelství školy',adresa:'Kozinova 1000, Praha 15',technik:'Nepřiřazeno',stav:'nová',createdAt:d(1),popis:'Výměna požárních klapek, revize VZT'}
-];
-
 function fmtDate(x){if(!x)return'—';var dd=x instanceof Date?x:new Date(x);return dd.toLocaleDateString('cs-CZ')}
 function fmtMoney(v){if(v==null)return'—';return Number(v).toLocaleString('cs-CZ')+' Kč'}
 function stCls(s){return{nová:'st-new',potvrzená:'st-confirmed','v realizaci':'st-progress',dokončená:'st-done',zrušená:'st-cancelled',vystavená:'st-new',odeslaná:'st-confirmed',zaplacená:'st-done','po splatnosti':'st-overdue',stornovaná:'st-cancelled','zkontrolováno':'st-confirmed','naskladněno':'st-done',schválená:'st-confirmed'}[s]||'st-new'}
@@ -393,7 +377,7 @@ function renderDashboard(){
   var fn=allFaktury.filter(function(f){return f.stav==='odeslaná'||f.stav==='vystavená'||f.stav==='nová'||f.stav==='schválená'}).length;
   var fp2=allFaktury.filter(isOverdue).length;
   var fc=_fakturyVydane.reduce(function(s,f){return s+(f.castka||0)},0);
-  var za=_zakazky.filter(function(z){return z.stav&&['dokončená','uzavřená','zrušená'].indexOf(z.stav)<0}).length;
+  var fpc=_fakturyPrijate.reduce(function(s,f){return s+(f.castka||0)},0);
   document.getElementById('dash-obj-nove').textContent=on;
   document.getElementById('dash-obj-realizace').textContent=or2;
   document.getElementById('dash-obj-mesic').textContent=om;
@@ -401,8 +385,7 @@ function renderDashboard(){
   document.getElementById('dash-fak-splatnost').textContent=fp2;
   document.getElementById('dash-fak-celkem').textContent=fmtMoney(fc);
   var pn=_prijemky.filter(function(p){return p.stav==='nová'||p.stav==='zkontrolováno'}).length;
-  document.getElementById('dash-zak-aktivni').textContent=za;
-  document.getElementById('dash-zak-celkem').textContent=_zakazky.length;
+  document.getElementById('dash-fp-celkem').textContent=fmtMoney(fpc);
   var all=_objednavky.slice(0,5).map(function(o){return{typ:'OBJ',cislo:o.cislo,stav:o.stav,date:o.createdAt,z:o.zakaznik}}).concat(_fakturyPrijate.slice(0,3).map(function(f){return{typ:'FP',cislo:f.cislo,stav:isOverdue(f)?'po splatnosti':f.stav,date:f.createdAt,z:f.dodavatel}})).concat(_fakturyVydane.slice(0,3).map(function(f){return{typ:'FV',cislo:f.cislo,stav:isOverdue(f)?'po splatnosti':f.stav,date:f.createdAt,z:f.odberatel}})).sort(function(a,b){return new Date(b.date)-new Date(a.date)}).slice(0,8);
   document.getElementById('dash-recent').innerHTML=all.map(function(a){return'<tr><td><span class="typ-badge typ-'+a.typ.toLowerCase()+'">'+a.typ+'</span></td><td>'+a.cislo+'</td><td>'+(a.z||'—')+'</td><td><span class="stav-chip '+stCls(a.stav)+'">'+(a.stav||'—')+'</span></td></tr>'}).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Žádné záznamy</td></tr>';
 }
@@ -462,19 +445,6 @@ function showFvDetail(id){
 }
 function changeFvStav(id,s){var f=_fakturyVydane.find(function(x){return x.id===id});if(f){f.stav=s;renderFakturyVydane();renderDashboard()}}
 function deleteFv(id){if(!confirm('Smazat vydanou fakturu?'))return;_fakturyVydane=_fakturyVydane.filter(function(x){return x.id!==id});_selFv=null;document.getElementById('fv-detail').innerHTML='<div class="empty-msg">Vyberte vydanou fakturu</div>';renderFakturyVydane();renderDashboard()}
-
-var _selZak=null;
-function renderZakazky(){
-  var f=(document.getElementById('zak-filter').value||'').toLowerCase(),list=_zakazky;
-  if(f)list=list.filter(function(z){return(z.cislo||'').toLowerCase().indexOf(f)>=0||(z.zakaznik||'').toLowerCase().indexOf(f)>=0});
-  document.getElementById('zak-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné zakázky</div>':list.map(function(z){return'<div class="item-card '+(_selZak===z.id?'active':'')+'" onclick="selectZak(\''+z.id+'\')"><div class="item-head"><span class="item-num">'+z.cislo+'</span><span class="stav-chip '+stCls(z.stav)+'">'+(z.stav||'nová')+'</span></div><div class="item-sub">'+(z.zakaznik||'—')+'</div><div class="item-meta">'+fmtDate(z.createdAt)+' · '+(z.technik||'Nepřiřazeno')+'</div></div>'}).join('');
-  if(_selZak)showZakDetail(_selZak);
-}
-function selectZak(id){_selZak=id;renderZakazky()}
-function showZakDetail(id){
-  var z=_zakazky.find(function(x){return x.id===id});if(!z){document.getElementById('zak-detail').innerHTML='<div class="empty-msg">Vyberte zakázku</div>';return}
-  document.getElementById('zak-detail').innerHTML='<div class="detail-header"><h2>'+z.cislo+'</h2><span class="stav-chip '+stCls(z.stav)+'">'+(z.stav||'nová')+'</span></div><div class="detail-grid"><div class="dfield"><label>Zákazník</label><span>'+(z.zakaznik||'—')+'</span></div><div class="dfield"><label>Kontakt</label><span>'+(z.kontakt||'—')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(z.adresa||'—')+'</span></div><div class="dfield"><label>Technik</label><span>'+(z.technik||'Nepřiřazeno')+'</span></div><div class="dfield"><label>Vytvořeno</label><span>'+fmtDate(z.createdAt)+'</span></div><div class="dfield"><label>Stav</label><span>'+(z.stav||'nová')+'</span></div></div><div class="dfield full"><label>Popis</label><p>'+(z.popis||'—')+'</p></div><div class="detail-actions"><button class="btn-action btn-invoice" onclick="createFakturaFromZak(\''+z.id+'\')">Vytvořit fakturu</button><button class="btn-action btn-edit" onclick="createObjFromZak(\''+z.id+'\')">Vytvořit objednávku</button></div>';
-}
 
 var _editPolozky=[];
 function openObjModal(eid){
@@ -565,8 +535,6 @@ function saveObj(e){
   document.getElementById('obj-modal').style.display='none';renderObjednavky();renderDashboard();
 }
 function createFakturaFromObj(oid){var o=_objednavky.find(function(x){return x.id===oid});if(!o)return;switchTab('faktury-vydane');openFvModal();document.getElementById('fv-odberatel').value=o.zakaznik||'';document.getElementById('fv-castka-bez').value=o.castka||'';document.getElementById('fv-obj-id').value=oid;_editPolozky=o.polozky?o.polozky.map(function(p){return{nazev:p.nazev,mnozstvi:p.mnozstvi,cena:p.cena}}):[];renderEditPolozky('fv');recalcFv()}
-function createFakturaFromZak(zid){var z=_zakazky.find(function(x){return x.id===zid});if(!z)return;switchTab('faktury-vydane');openFvModal();document.getElementById('fv-odberatel').value=z.zakaznik||'';document.getElementById('fv-adresa').value=z.adresa||''}
-function createObjFromZak(zid){var z=_zakazky.find(function(x){return x.id===zid});if(!z)return;switchTab('objednavky');openObjModal();document.getElementById('obj-zakaznik').value=z.zakaznik||'';document.getElementById('obj-popis').value=z.popis||''}
 function closeModal(id){document.getElementById(id).style.display='none'}
 
 /* ===== PRIJEMKY ===== */
@@ -806,7 +774,7 @@ function createObjFromVyk(){
   _objednavky.unshift(data);switchTab('objednavky');_selObj=data.id;renderObjednavky();renderDashboard();
 }
 
-renderObjednavky();renderFakturyPrijate();renderFakturyVydane();renderZakazky();renderPrijemky();renderDashboard();
+renderObjednavky();renderFakturyPrijate();renderFakturyVydane();renderPrijemky();renderDashboard();
 </script>
 </body>
 </html>
