@@ -14,6 +14,7 @@
   --bg:#eef3fb;--card:#fff;--border:#c5d5ee;
   --text:#1a2540;--muted:#6b7a99;--lt:#8a9ab8;
   --err:#e74c3c;--warn:#f0a500;--orange:#e67e22;
+  --purple:#8e44ad;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -38,6 +39,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .stat-card.green .val{color:var(--green)}
 .stat-card.orange .val{color:var(--orange)}
 .stat-card.red .val{color:var(--err)}
+.stat-card.purple .val{color:var(--purple)}
 .dash h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--navy)}
 .recent-tbl{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
 .recent-tbl th{background:var(--navy);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left}
@@ -47,6 +49,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .typ-fak{background:#fff3e0;color:#b57a1a}
 .typ-fp{background:#fce4ec;color:#b71c1c}
 .typ-fv{background:#e8f5e9;color:#2e7d32}
+.typ-pri{background:#e8ffe0;color:#2d7a1a}
+.typ-vyk{background:#f0e8ff;color:#6a3daf}
 .stav-chip{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .st-new{background:#e8f0fe;color:#1a5fb5}
 .st-confirmed{background:#e0f5e0;color:#1a8a2e}
@@ -86,6 +90,9 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .btn-edit{background:var(--blue);color:#fff}.btn-edit:hover{filter:brightness(1.1)}
 .btn-invoice{background:var(--orange);color:#fff}.btn-invoice:hover{filter:brightness(1.1)}
 .btn-del{background:var(--err);color:#fff}.btn-del:hover{filter:brightness(1.1)}
+.btn-print{background:var(--purple);color:#fff}.btn-print:hover{filter:brightness(1.1)}
+.btn-upload{background:var(--green);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-upload:hover{filter:brightness(1.1)}
 .pol-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
 .pol-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
 .pol-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
@@ -110,8 +117,6 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .btn-pol-del{background:var(--err);color:#fff;border:none;border-radius:4px;width:26px;height:26px;font-size:16px;cursor:pointer;line-height:1}
 .btn-pol-add{background:var(--blue2);color:var(--blue);border:1px dashed var(--blue);border-radius:5px;padding:6px 12px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px}
 .fak-total{font-size:16px;font-weight:700;color:var(--green);margin-top:8px}
-.typ-pri{background:#e8ffe0;color:#2d7a1a}
-.typ-vyk{background:#f0e8ff;color:#6a3daf}
 .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);margin-bottom:16px}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:var(--blue2)}
 .upload-zone input[type=file]{display:none}
@@ -140,316 +145,512 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .col-map{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .col-map label{font-size:11px;font-weight:600;color:var(--muted);min-width:100px}
 .col-map select{border:1.5px solid var(--border);border-radius:5px;padding:5px 8px;font-family:inherit;font-size:11px}
-.btn-upload{background:var(--green);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-upload:hover{filter:brightness(1.1)}
 .prijemka-check{display:flex;align-items:center;gap:6px;font-size:12px}
 .prijemka-check input[type=number]{width:60px;border:1.5px solid var(--border);border-radius:4px;padding:4px 6px;font-family:inherit;font-size:12px;text-align:center}
 .prijemka-ok{color:var(--green);font-weight:700}
 .prijemka-diff{color:var(--err);font-weight:700}
+.dash-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}
+@media(max-width:900px){.dash-charts{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card h4{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:10px}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.bar-col .bar-val{font-size:9px;font-weight:700;color:var(--navy)}
+.bar-col .bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:2px;transition:height .5s}
+.bar-col .bar-lbl{font-size:9px;color:var(--muted)}
+.conn-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.conn-ok{background:#e8f5e9;color:#2e7d32}
+.conn-off{background:#fde8e8;color:#b91c1c}
+.loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media print{
+  .topbar,.tabs,.list-panel,.detail-actions,.btn-action,.stav-sel,.modal-overlay{display:none!important}
+  .split-layout{display:block!important;height:auto!important}
+  .detail-panel{padding:0!important}
+  body{background:#fff!important}
+  .tab-panel{display:block!important}
+}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="topbar">
-    <h1>Progresklima <span>· Evidence</span></h1>
+    <h1>Progresklima <span>&#183; Evidence</span></h1>
     <div class="topbar-right">
+      <span class="conn-badge conn-off" id="conn-status">OFFLINE</span>
       <span class="badge-role">ADMIN</span>
       <div class="user-info"><div class="av">P</div><span>Progresklima</span></div>
     </div>
   </div>
   <div class="tabs">
-    <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Přehled</button>
-    <button class="tab-btn" data-tab="objednavky" onclick="switchTab('objednavky')">Objednávky</button>
-    <button class="tab-btn" data-tab="faktury-prijate" onclick="switchTab('faktury-prijate')">Faktury přijaté</button>
-    <button class="tab-btn" data-tab="faktury-vydane" onclick="switchTab('faktury-vydane')">Faktury vydané</button>
-    <button class="tab-btn" data-tab="prijemky" onclick="switchTab('prijemky')">Příjemky</button>
-    <button class="tab-btn" data-tab="vykaz" onclick="switchTab('vykaz')">Výkaz výměr</button>
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">P&#345;ehled</button>
+    <button class="tab-btn" data-tab="objednavky" onclick="switchTab('objednavky')">Objedn&#225;vky</button>
+    <button class="tab-btn" data-tab="faktury-prijate" onclick="switchTab('faktury-prijate')">Faktury p&#345;ijat&#233;</button>
+    <button class="tab-btn" data-tab="faktury-vydane" onclick="switchTab('faktury-vydane')">Faktury vydan&#233;</button>
+    <button class="tab-btn" data-tab="prijemky" onclick="switchTab('prijemky')">P&#345;&#237;jemky</button>
+    <button class="tab-btn" data-tab="vydejky" onclick="switchTab('vydejky')">V&#253;dejky</button>
+    <button class="tab-btn" data-tab="vykaz" onclick="switchTab('vykaz')">V&#253;kaz v&#253;m&#283;r</button>
   </div>
+
+  <!-- DASHBOARD -->
   <div class="tab-panel active" id="tab-dashboard">
     <div class="dash">
       <div class="stat-row">
-        <div class="stat-card"><div class="label">Nové objednávky</div><div class="val" id="dash-obj-nove">0</div></div>
+        <div class="stat-card"><div class="label">Nov&#233; objedn&#225;vky</div><div class="val" id="dash-obj-nove">0</div></div>
         <div class="stat-card orange"><div class="label">V realizaci</div><div class="val" id="dash-obj-realizace">0</div></div>
-        <div class="stat-card"><div class="label">Objednávky tento měsíc</div><div class="val" id="dash-obj-mesic">0</div></div>
-        <div class="stat-card orange"><div class="label">Nezaplacené faktury</div><div class="val" id="dash-fak-nezaplacene">0</div></div>
+        <div class="stat-card"><div class="label">Objedn&#225;vky tento m&#283;s&#237;c</div><div class="val" id="dash-obj-mesic">0</div></div>
+        <div class="stat-card orange"><div class="label">Nezaplacen&#233; FV</div><div class="val" id="dash-fak-nezaplacene">0</div></div>
         <div class="stat-card red"><div class="label">Po splatnosti</div><div class="val" id="dash-fak-splatnost">0</div></div>
-        <div class="stat-card green"><div class="label">Vydané celkem</div><div class="val" id="dash-fak-celkem">0 Kč</div></div>
-        <div class="stat-card"><div class="label">Přijaté celkem</div><div class="val" id="dash-fp-celkem">0 Kč</div></div>
+        <div class="stat-card green"><div class="label">Vydan&#233; celkem</div><div class="val" id="dash-fak-celkem">0 K&#269;</div></div>
+        <div class="stat-card purple"><div class="label">P&#345;ijat&#233; celkem</div><div class="val" id="dash-fp-celkem">0 K&#269;</div></div>
       </div>
-      <h3>Poslední aktivita</h3>
-      <table class="recent-tbl"><thead><tr><th>Typ</th><th>Číslo</th><th>Dodavatel</th><th>Stav</th></tr></thead><tbody id="dash-recent"></tbody></table>
+      <div class="dash-charts">
+        <div class="chart-card"><h4>Fakturace posledn&#237;ch 6 m&#283;s&#237;c&#367;</h4><div class="bar-chart" id="dash-chart-fv"></div></div>
+        <div class="chart-card"><h4>P&#345;ijat&#233; vs Vydan&#233;</h4><div class="bar-chart" id="dash-chart-fp-fv"></div></div>
+      </div>
+      <h3>Posledn&#237; aktivita</h3>
+      <table class="recent-tbl"><thead><tr><th>Typ</th><th>&#268;&#237;slo</th><th>Partner</th><th>&#268;&#225;stka</th><th>Stav</th></tr></thead><tbody id="dash-recent"></tbody></table>
     </div>
   </div>
+
+  <!-- OBJEDNAVKY -->
   <div class="tab-panel" id="tab-objednavky"><div class="split-layout">
     <div class="list-panel">
       <div class="list-toolbar">
         <input type="text" id="obj-filter" placeholder="Hledat..." oninput="renderObjednavky()">
-        <select id="obj-stav-filter" onchange="renderObjednavky()"><option value="">Vše</option><option value="nová">Nová</option><option value="potvrzená">Potvrzená</option><option value="v realizaci">V realizaci</option><option value="dokončená">Dokončená</option><option value="zrušená">Zrušená</option></select>
-        <button class="btn-new" onclick="openObjModal()">+ Nová</button>
-        <button class="btn-upload" onclick="openOcrModal('obj')">Nahrát fakturu</button>
+        <select id="obj-stav-filter" onchange="renderObjednavky()"><option value="">V&#353;e</option><option value="nov&#225;">Nov&#225;</option><option value="potvrzen&#225;">Potvrzen&#225;</option><option value="v realizaci">V realizaci</option><option value="dokon&#269;en&#225;">Dokon&#269;en&#225;</option><option value="zru&#353;en&#225;">Zru&#353;en&#225;</option></select>
+        <button class="btn-new" onclick="openObjModal()">+ Nov&#225;</button>
+        <button class="btn-upload" onclick="openOcrModal('obj')">Nahr&#225;t fakturu</button>
       </div>
       <div class="list-scroll" id="obj-list"></div>
     </div>
-    <div class="detail-panel" id="obj-detail"><div class="empty-msg">Vyberte objednávku ze seznamu vlevo</div></div>
+    <div class="detail-panel" id="obj-detail"><div class="empty-msg">Vyberte objedn&#225;vku ze seznamu vlevo</div></div>
   </div></div>
-  <!-- FAKTURY PŘIJATÉ -->
+
+  <!-- FAKTURY PRIJATE -->
   <div class="tab-panel" id="tab-faktury-prijate"><div class="split-layout">
     <div class="list-panel">
       <div class="list-toolbar">
         <input type="text" id="fp-filter" placeholder="Hledat..." oninput="renderFakturyPrijate()">
-        <select id="fp-stav-filter" onchange="renderFakturyPrijate()"><option value="">Vše</option><option value="nová">Nová</option><option value="schválená">Schválená</option><option value="zaplacená">Zaplacená</option><option value="stornovaná">Stornovaná</option></select>
-        <button class="btn-new" onclick="openFpModal()">+ Nová</button>
-        <button class="btn-upload" onclick="openOcrModal('fp')">Nahrát (OCR)</button>
+        <select id="fp-stav-filter" onchange="renderFakturyPrijate()"><option value="">V&#353;e</option><option value="nov&#225;">Nov&#225;</option><option value="schv&#225;len&#225;">Schv&#225;len&#225;</option><option value="zaplacen&#225;">Zaplacen&#225;</option><option value="stornovan&#225;">Stornovan&#225;</option></select>
+        <button class="btn-new" onclick="openFpModal()">+ Nov&#225;</button>
+        <button class="btn-upload" onclick="openOcrModal('fp')">Nahr&#225;t (OCR)</button>
       </div>
       <div class="list-scroll" id="fp-list"></div>
     </div>
-    <div class="detail-panel" id="fp-detail"><div class="empty-msg">Vyberte přijatou fakturu ze seznamu vlevo</div></div>
+    <div class="detail-panel" id="fp-detail"><div class="empty-msg">Vyberte p&#345;ijatou fakturu ze seznamu vlevo</div></div>
   </div></div>
-  <!-- FAKTURY VYDANÉ -->
+
+  <!-- FAKTURY VYDANE -->
   <div class="tab-panel" id="tab-faktury-vydane"><div class="split-layout">
     <div class="list-panel">
       <div class="list-toolbar">
         <input type="text" id="fv-filter" placeholder="Hledat..." oninput="renderFakturyVydane()">
-        <select id="fv-stav-filter" onchange="renderFakturyVydane()"><option value="">Vše</option><option value="vystavená">Vystavená</option><option value="odeslaná">Odeslaná</option><option value="zaplacená">Zaplacená</option><option value="stornovaná">Stornovaná</option></select>
-        <button class="btn-new" onclick="openFvModal()">+ Nová</button>
+        <select id="fv-stav-filter" onchange="renderFakturyVydane()"><option value="">V&#353;e</option><option value="vystaven&#225;">Vystaven&#225;</option><option value="odeslan&#225;">Odeslan&#225;</option><option value="zaplacen&#225;">Zaplacen&#225;</option><option value="stornovan&#225;">Stornovan&#225;</option></select>
+        <button class="btn-new" onclick="openFvModal()">+ Nov&#225;</button>
       </div>
       <div class="list-scroll" id="fv-list"></div>
     </div>
     <div class="detail-panel" id="fv-detail"><div class="empty-msg">Vyberte vydanou fakturu ze seznamu vlevo</div></div>
   </div></div>
-  <!-- PRIJEMKY TAB -->
+
+  <!-- PRIJEMKY -->
   <div class="tab-panel" id="tab-prijemky"><div class="split-layout">
     <div class="list-panel">
       <div class="list-toolbar">
         <input type="text" id="pri-filter" placeholder="Hledat..." oninput="renderPrijemky()">
-        <select id="pri-stav-filter" onchange="renderPrijemky()"><option value="">Vše</option><option value="nová">Nová</option><option value="zkontrolováno">Zkontrolováno</option><option value="naskladněno">Naskladněno</option></select>
+        <select id="pri-stav-filter" onchange="renderPrijemky()"><option value="">V&#353;e</option><option value="nov&#225;">Nov&#225;</option><option value="zkontrolov&#225;no">Zkontrolov&#225;no</option><option value="naskladn&#283;no">Naskladn&#283;no</option></select>
       </div>
       <div class="list-scroll" id="pri-list"></div>
     </div>
-    <div class="detail-panel" id="pri-detail"><div class="empty-msg">Vyberte příjemku ze seznamu vlevo nebo vytvořte z objednávky</div></div>
+    <div class="detail-panel" id="pri-detail"><div class="empty-msg">Vyberte p&#345;&#237;jemku ze seznamu vlevo</div></div>
   </div></div>
-  <!-- VYKAZ VYMER TAB -->
+
+  <!-- VYDEJKY -->
+  <div class="tab-panel" id="tab-vydejky"><div class="split-layout">
+    <div class="list-panel">
+      <div class="list-toolbar">
+        <input type="text" id="vyd-filter" placeholder="Hledat..." oninput="renderVydejky()">
+        <select id="vyd-stav-filter" onchange="renderVydejky()"><option value="">V&#353;e</option><option value="nov&#225;">Nov&#225;</option><option value="p&#345;ipraven&#225;">P&#345;ipraven&#225;</option><option value="vyd&#225;no">Vyd&#225;no</option><option value="zru&#353;en&#225;">Zru&#353;en&#225;</option></select>
+        <button class="btn-new" onclick="openVydModal()">+ Nov&#225;</button>
+      </div>
+      <div class="list-scroll" id="vyd-list"></div>
+    </div>
+    <div class="detail-panel" id="vyd-detail"><div class="empty-msg">Vyberte v&#253;dejku ze seznamu vlevo nebo vytvo&#345;te novou</div></div>
+  </div></div>
+
+  <!-- VYKAZ VYMER -->
   <div class="tab-panel" id="tab-vykaz">
     <div class="dash" id="vykaz-content">
-      <h3>Import výkazu výměr</h3>
+      <h3>Import v&#253;kazu v&#253;m&#283;r</h3>
       <div class="upload-zone" id="vyk-upload-zone" onclick="document.getElementById('vyk-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');handleVykFile(event.dataTransfer.files[0])">
         <div class="uz-icon">&#128196;</div>
-        <div class="uz-text">Přetáhněte soubor (Excel/CSV) nebo <strong>klikněte pro výběr</strong></div>
+        <div class="uz-text">P&#345;et&#225;hn&#283;te soubor (Excel/CSV) nebo <strong>klikn&#283;te pro v&#253;b&#283;r</strong></div>
         <input type="file" id="vyk-file-input" accept=".xlsx,.xls,.csv" onchange="handleVykFile(this.files[0])">
       </div>
       <div id="vyk-mapping" style="display:none">
-        <h3>Mapování sloupců</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Přiřaďte sloupce ze souboru k polím výkazu výměr:</p>
+        <h3>Mapov&#225;n&#237; sloupc&#367;</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">P&#345;i&#345;a&#271;te sloupce ze souboru k pol&#237;m v&#253;kazu v&#253;m&#283;r:</p>
         <div id="vyk-col-maps"></div>
-        <button class="btn-save" onclick="applyVykMapping()" style="margin-top:12px">Zpracovat výkaz</button>
+        <button class="btn-save" onclick="applyVykMapping()" style="margin-top:12px">Zpracovat v&#253;kaz</button>
       </div>
       <div id="vyk-results" style="display:none">
-        <h3>Výkaz výměr — souhrn</h3>
+        <h3>V&#253;kaz v&#253;m&#283;r &#8212; souhrn</h3>
         <div class="vyk-summary" id="vyk-summary"></div>
-        <h3 style="margin-top:20px">Položky</h3>
+        <h3 style="margin-top:20px">Polo&#382;ky</h3>
         <div style="overflow-x:auto"><table class="vyk-table" id="vyk-items-table"></table></div>
         <div class="detail-actions" style="margin-top:16px">
           <button class="btn-action btn-edit" onclick="exportVykHelios()">Export pro Helios (CSV)</button>
-          <button class="btn-action btn-invoice" onclick="createObjFromVyk()">Vytvořit objednávku</button>
+          <button class="btn-action btn-invoice" onclick="createObjFromVyk()">Vytvo&#345;it objedn&#225;vku</button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- MODALS -->
+<!-- OBJ MODAL -->
 <div class="modal-overlay" id="obj-modal"><div class="modal-box">
-  <h3 id="obj-modal-title">Nová objednávka</h3>
+  <h3 id="obj-modal-title">Nov&#225; objedn&#225;vka</h3>
   <form onsubmit="saveObj(event)">
     <input type="hidden" id="obj-edit-id">
-    <div class="modal-row"><div class="fg"><label>Číslo objednávky</label><input type="text" id="obj-cislo" required></div><div class="fg"><label>Dodavatel</label><input type="text" id="obj-zakaznik" required></div></div>
-    <div class="modal-row"><div class="fg"><label>Kontakt</label><input type="text" id="obj-kontakt"></div><div class="fg"><label>Termín</label><input type="date" id="obj-termin"></div></div>
+    <div class="modal-row"><div class="fg"><label>&#268;&#237;slo objedn&#225;vky</label><input type="text" id="obj-cislo" required></div><div class="fg"><label>Dodavatel</label><input type="text" id="obj-zakaznik" required></div></div>
+    <div class="modal-row"><div class="fg"><label>Kontakt</label><input type="text" id="obj-kontakt"></div><div class="fg"><label>Term&#237;n</label><input type="date" id="obj-termin"></div></div>
     <div class="fg"><label>Popis</label><textarea id="obj-popis"></textarea></div>
-    <div class="fg"><label>Částka celkem (Kč)</label><input type="number" id="obj-castka" step="1"></div>
-    <div class="pol-editor"><h4>Položky</h4><div id="obj-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('obj')">+ Přidat položku</button></div>
-    <div class="fg" style="margin-top:12px"><label>Poznámka</label><textarea id="obj-poznamka"></textarea></div>
-    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('obj-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+    <div class="fg"><label>&#268;&#225;stka celkem (K&#269;)</label><input type="number" id="obj-castka" step="1"></div>
+    <div class="pol-editor"><h4>Polo&#382;ky</h4><div id="obj-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('obj')">+ P&#345;idat polo&#382;ku</button></div>
+    <div class="fg" style="margin-top:12px"><label>Pozn&#225;mka</label><textarea id="obj-poznamka"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('obj-modal')">Zru&#353;it</button><button type="submit" class="btn-save">Ulo&#382;it</button></div>
   </form>
 </div></div>
-<!-- MODAL: Faktura přijatá -->
+
+<!-- FP MODAL -->
 <div class="modal-overlay" id="fp-modal"><div class="modal-box">
-  <h3 id="fp-modal-title">Nová faktura přijatá</h3>
+  <h3 id="fp-modal-title">Nov&#225; faktura p&#345;ijat&#225;</h3>
   <form onsubmit="saveFp(event)">
     <input type="hidden" id="fp-edit-id"><input type="hidden" id="fp-obj-id">
-    <div class="modal-row"><div class="fg"><label>Číslo faktury</label><input type="text" id="fp-cislo" required></div><div class="fg"><label>Dodavatel</label><input type="text" id="fp-dodavatel" required></div></div>
-    <div class="modal-row"><div class="fg"><label>IČO</label><input type="text" id="fp-ico"></div><div class="fg"><label>DIČ</label><input type="text" id="fp-dic"></div></div>
+    <div class="modal-row"><div class="fg"><label>&#268;&#237;slo faktury</label><input type="text" id="fp-cislo" required></div><div class="fg"><label>Dodavatel</label><input type="text" id="fp-dodavatel" required></div></div>
+    <div class="modal-row"><div class="fg"><label>I&#268;O</label><input type="text" id="fp-ico"></div><div class="fg"><label>DI&#268;</label><input type="text" id="fp-dic"></div></div>
     <div class="fg"><label>Adresa dodavatele</label><input type="text" id="fp-adresa"></div>
-    <div class="modal-row"><div class="fg"><label>Datum přijetí</label><input type="date" id="fp-datum-prijeti"></div><div class="fg"><label>Datum zdanitelného plnění</label><input type="date" id="fp-duzp"></div></div>
-    <div class="modal-row"><div class="fg"><label>Variabilní symbol</label><input type="text" id="fp-vs"></div><div class="fg"><label>Způsob platby</label><select id="fp-platba"><option value="převodem">Převodem</option><option value="hotově">Hotově</option><option value="kartou">Kartou</option></select></div></div>
+    <div class="modal-row"><div class="fg"><label>Datum p&#345;ijet&#237;</label><input type="date" id="fp-datum-prijeti"></div><div class="fg"><label>Datum zdan. pln&#283;n&#237;</label><input type="date" id="fp-duzp"></div></div>
+    <div class="modal-row"><div class="fg"><label>Variabiln&#237; symbol</label><input type="text" id="fp-vs"></div><div class="fg"><label>Zp&#367;sob platby</label><select id="fp-platba"><option value="p&#345;evodem">P&#345;evodem</option><option value="hotov&#283;">Hotov&#283;</option><option value="kartou">Kartou</option></select></div></div>
     <div class="modal-row"><div class="fg"><label>DPH sazba (%)</label><input type="number" id="fp-dph" value="21" onchange="recalcFp()"></div><div class="fg"><label>Splatnost</label><input type="date" id="fp-splatnost"></div></div>
-    <div class="pol-editor"><h4>Položky faktury</h4><div id="fp-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('fp')">+ Přidat položku</button></div>
-    <div class="modal-row" style="margin-top:12px"><div class="fg"><label>Částka bez DPH</label><input type="number" id="fp-castka-bez" step="1"></div><div class="fg"><label>Částka s DPH</label><div class="fak-total" id="fp-castka-celkem">0 Kč</div></div></div>
-    <div class="fg"><label>Poznámka</label><textarea id="fp-poznamka"></textarea></div>
-    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('fp-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+    <div class="pol-editor"><h4>Polo&#382;ky faktury</h4><div id="fp-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('fp')">+ P&#345;idat polo&#382;ku</button></div>
+    <div class="modal-row" style="margin-top:12px"><div class="fg"><label>&#268;&#225;stka bez DPH</label><input type="number" id="fp-castka-bez" step="1"></div><div class="fg"><label>&#268;&#225;stka s DPH</label><div class="fak-total" id="fp-castka-celkem">0 K&#269;</div></div></div>
+    <div class="fg"><label>Pozn&#225;mka</label><textarea id="fp-poznamka"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('fp-modal')">Zru&#353;it</button><button type="submit" class="btn-save">Ulo&#382;it</button></div>
   </form>
 </div></div>
-<!-- MODAL: Faktura vydaná -->
+
+<!-- FV MODAL -->
 <div class="modal-overlay" id="fv-modal"><div class="modal-box">
-  <h3 id="fv-modal-title">Nová faktura vydaná</h3>
+  <h3 id="fv-modal-title">Nov&#225; faktura vydan&#225;</h3>
   <form onsubmit="saveFv(event)">
     <input type="hidden" id="fv-edit-id"><input type="hidden" id="fv-obj-id">
-    <div class="modal-row"><div class="fg"><label>Číslo faktury</label><input type="text" id="fv-cislo" required></div><div class="fg"><label>Odběratel</label><input type="text" id="fv-odberatel" required></div></div>
-    <div class="modal-row"><div class="fg"><label>IČO</label><input type="text" id="fv-ico"></div><div class="fg"><label>DIČ</label><input type="text" id="fv-dic"></div></div>
-    <div class="fg"><label>Adresa odběratele</label><input type="text" id="fv-adresa"></div>
-    <div class="modal-row"><div class="fg"><label>Datum vystavení</label><input type="date" id="fv-datum-vystaveni"></div><div class="fg"><label>Datum zdanitelného plnění</label><input type="date" id="fv-duzp"></div></div>
-    <div class="modal-row"><div class="fg"><label>Variabilní symbol</label><input type="text" id="fv-vs"></div><div class="fg"><label>Způsob platby</label><select id="fv-platba"><option value="převodem">Převodem</option><option value="hotově">Hotově</option><option value="kartou">Kartou</option></select></div></div>
+    <div class="modal-row"><div class="fg"><label>&#268;&#237;slo faktury</label><input type="text" id="fv-cislo" required></div><div class="fg"><label>Odb&#283;ratel</label><input type="text" id="fv-odberatel" required></div></div>
+    <div class="modal-row"><div class="fg"><label>I&#268;O</label><input type="text" id="fv-ico"></div><div class="fg"><label>DI&#268;</label><input type="text" id="fv-dic"></div></div>
+    <div class="fg"><label>Adresa odb&#283;ratele</label><input type="text" id="fv-adresa"></div>
+    <div class="modal-row"><div class="fg"><label>Datum vystaven&#237;</label><input type="date" id="fv-datum-vystaveni"></div><div class="fg"><label>Datum zdan. pln&#283;n&#237;</label><input type="date" id="fv-duzp"></div></div>
+    <div class="modal-row"><div class="fg"><label>Variabiln&#237; symbol</label><input type="text" id="fv-vs"></div><div class="fg"><label>Zp&#367;sob platby</label><select id="fv-platba"><option value="p&#345;evodem">P&#345;evodem</option><option value="hotov&#283;">Hotov&#283;</option><option value="kartou">Kartou</option></select></div></div>
     <div class="modal-row"><div class="fg"><label>DPH sazba (%)</label><input type="number" id="fv-dph" value="21" onchange="recalcFv()"></div><div class="fg"><label>Splatnost</label><input type="date" id="fv-splatnost"></div></div>
-    <div class="pol-editor"><h4>Položky faktury</h4><div id="fv-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('fv')">+ Přidat položku</button></div>
-    <div class="modal-row" style="margin-top:12px"><div class="fg"><label>Částka bez DPH</label><input type="number" id="fv-castka-bez" step="1"></div><div class="fg"><label>Částka s DPH</label><div class="fak-total" id="fv-castka-celkem">0 Kč</div></div></div>
-    <div class="fg"><label>Poznámka</label><textarea id="fv-poznamka"></textarea></div>
-    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('fv-modal')">Zrušit</button><button type="submit" class="btn-save">Uložit</button></div>
+    <div class="pol-editor"><h4>Polo&#382;ky faktury</h4><div id="fv-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('fv')">+ P&#345;idat polo&#382;ku</button></div>
+    <div class="modal-row" style="margin-top:12px"><div class="fg"><label>&#268;&#225;stka bez DPH</label><input type="number" id="fv-castka-bez" step="1"></div><div class="fg"><label>&#268;&#225;stka s DPH</label><div class="fak-total" id="fv-castka-celkem">0 K&#269;</div></div></div>
+    <div class="fg"><label>Pozn&#225;mka</label><textarea id="fv-poznamka"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('fv-modal')">Zru&#353;it</button><button type="submit" class="btn-save">Ulo&#382;it</button></div>
+  </form>
+</div></div>
+
+<!-- VYD MODAL -->
+<div class="modal-overlay" id="vyd-modal"><div class="modal-box">
+  <h3 id="vyd-modal-title">Nov&#225; v&#253;dejka</h3>
+  <form onsubmit="saveVyd(event)">
+    <input type="hidden" id="vyd-edit-id">
+    <div class="modal-row"><div class="fg"><label>&#268;&#237;slo v&#253;dejky</label><input type="text" id="vyd-cislo" required></div><div class="fg"><label>Odb&#283;ratel / Z&#225;kazn&#237;k</label><input type="text" id="vyd-zakaznik" required></div></div>
+    <div class="modal-row"><div class="fg"><label>Datum v&#253;deje</label><input type="date" id="vyd-datum"></div><div class="fg"><label>Objedn&#225;vka</label><select id="vyd-obj-id"><option value="">&#8212; &#382;&#225;dn&#225; &#8212;</option></select></div></div>
+    <div class="pol-editor"><h4>Polo&#382;ky v&#253;dejky</h4><div id="vyd-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('vyd')">+ P&#345;idat polo&#382;ku</button></div>
+    <div class="fg" style="margin-top:12px"><label>Pozn&#225;mka</label><textarea id="vyd-poznamka"></textarea></div>
+    <div class="modal-actions"><button type="button" class="btn-cancel" onclick="closeModal('vyd-modal')">Zru&#353;it</button><button type="submit" class="btn-save">Ulo&#382;it</button></div>
   </form>
 </div></div>
 
 <!-- OCR MODAL -->
 <div class="modal-overlay" id="ocr-modal"><div class="modal-box">
-  <h3>Nahrát fakturu (OCR)</h3>
+  <h3>Nahr&#225;t fakturu (OCR)</h3>
   <input type="hidden" id="ocr-target">
   <div class="upload-zone" id="ocr-upload-zone" onclick="document.getElementById('ocr-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="event.preventDefault();this.classList.remove('drag');handleOcrFile(event.dataTransfer.files[0])">
     <div class="uz-icon">&#128247;</div>
-    <div class="uz-text">Přetáhněte scan/foto faktury nebo <strong>klikněte pro výběr</strong><br>PNG, JPG, PDF</div>
+    <div class="uz-text">P&#345;et&#225;hn&#283;te scan/foto faktury nebo <strong>klikn&#283;te pro v&#253;b&#283;r</strong><br>PNG, JPG, PDF</div>
     <input type="file" id="ocr-file-input" accept="image/*,.pdf" onchange="handleOcrFile(this.files[0])">
   </div>
   <div class="ocr-progress" id="ocr-progress">
-    <div class="status" id="ocr-status">Připravuji OCR...</div>
+    <div class="status" id="ocr-status">P&#345;ipravuji OCR...</div>
     <div class="bar"><div class="bar-fill" id="ocr-bar"></div></div>
   </div>
   <div class="ocr-result" id="ocr-result"></div>
   <div id="ocr-parsed" style="display:none">
-    <h3 style="margin-top:12px;font-size:14px">Rozpoznaná data</h3>
-    <div class="modal-row"><div class="fg"><label>Dodavatel</label><input type="text" id="ocr-dodavatel"></div><div class="fg"><label>IČO</label><input type="text" id="ocr-ico"></div></div>
-    <div class="modal-row"><div class="fg"><label>Číslo faktury</label><input type="text" id="ocr-faktura-cislo"></div><div class="fg"><label>Datum</label><input type="date" id="ocr-datum"></div></div>
-    <div class="modal-row"><div class="fg"><label>Částka celkem</label><input type="number" id="ocr-castka"></div><div class="fg"><label>VS</label><input type="text" id="ocr-vs"></div></div>
-    <div class="pol-editor"><h4>Rozpoznané položky</h4><div id="ocr-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('ocr')">+ Přidat položku</button></div>
-    <div class="modal-actions">
-      <button type="button" class="btn-cancel" onclick="closeModal('ocr-modal')">Zrušit</button>
-      <button type="button" class="btn-save" onclick="ocrCreateObj()" id="ocr-create-btn">Vytvořit objednávku</button>
-    </div>
+    <h3 style="margin-top:12px">Rozpoznan&#225; data</h3>
+    <div class="modal-row"><div class="fg"><label>Dodavatel</label><input type="text" id="ocr-dodavatel"></div><div class="fg"><label>I&#268;O</label><input type="text" id="ocr-ico"></div></div>
+    <div class="modal-row"><div class="fg"><label>&#268;&#237;slo faktury</label><input type="text" id="ocr-faktura-cislo"></div><div class="fg"><label>Datum</label><input type="date" id="ocr-datum"></div></div>
+    <div class="modal-row"><div class="fg"><label>&#268;&#225;stka</label><input type="number" id="ocr-castka" step="1"></div><div class="fg"><label>VS</label><input type="text" id="ocr-vs"></div></div>
+    <div class="pol-editor"><h4>Polo&#382;ky</h4><div id="ocr-polozky-list"></div><button type="button" class="btn-pol-add" onclick="addPolozka('ocr')">+ P&#345;idat polo&#382;ku</button></div>
+    <div class="modal-actions" style="margin-top:12px"><button type="button" class="btn-cancel" onclick="closeModal('ocr-modal')">Zru&#353;it</button><button type="button" class="btn-save" id="ocr-create-btn" onclick="ocrCreateObj()">Vytvo&#345;it</button></div>
   </div>
 </div></div>
 
+<!-- PRINT MODAL (hidden, used for PDF generation) -->
+<div id="print-area" style="display:none"></div>
+
 <script>
-var now=new Date(),_nid=100;
-function d(n){var x=new Date();x.setDate(x.getDate()-n);return x}
-function fut(n){var x=new Date();x.setDate(x.getDate()+n);return x}
-function gid(){return'id-'+(++_nid)}
+/* ===== CONFIG & API ===== */
+var API_BASE = '';
+var _apiMode = false;
 
-var _objednavky=[
-{id:gid(),cislo:'OBJ-2026-0001',zakaznik:'ELEKTRODESIGN s.r.o.',kontakt:'objednavky@elektrodesign.cz, +420 281 015 015',popis:'Ventilační jednotky a příslušenství pro projekt Rezidence Karlín',castka:187500,stav:'potvrzená',createdAt:d(12),termin:fut(18),createdBy:'Jan Novák',polozky:[{nazev:'Rekuperační jednotka DUPLEX 370 EC5',mnozstvi:3,cena:42500},{nazev:'Tlumič hluku DH 200/600',mnozstvi:6,cena:3200},{nazev:'Filtr kazetový M5 287x592x48',mnozstvi:12,cena:890}],poznamka:'Dodání na stavbu, kontakt stavbyvedoucí Ing. Dvořák'},
-{id:gid(),cislo:'OBJ-2026-0002',zakaznik:'Lindab s.r.o.',kontakt:'orders@lindab.cz, +420 233 107 111',popis:'VZT potrubí a tvarovky pro admin. budovu Brno-Slatina',castka:94200,stav:'v realizaci',createdAt:d(8),termin:fut(5),createdBy:'Petr Svoboda',polozky:[{nazev:'Spiro potrubí 200mm 3m',mnozstvi:40,cena:980},{nazev:'Spiro potrubí 160mm 3m',mnozstvi:25,cena:750},{nazev:'Koleno 90° 200mm',mnozstvi:20,cena:420},{nazev:'T-kus 200/160mm',mnozstvi:15,cena:580},{nazev:'Regulační klapka 200mm',mnozstvi:10,cena:890}],poznamka:'Částečná dodávka proběhla, zbytek do konce týdne'},
-{id:gid(),cislo:'OBJ-2026-0003',zakaznik:'Sinclair Global Group s.r.o.',kontakt:'velkoobchod@sinclair-air.com, +420 234 602 602',popis:'Klimatizační jednotky pro bytový dům Vinohrady - 18 bytů',castka:342000,stav:'nová',createdAt:d(2),termin:fut(30),createdBy:'Jan Novák',polozky:[{nazev:'Sinclair ASH-09BIS2 nástěnná jedn.',mnozstvi:18,cena:12500},{nazev:'Sinclair ASGE-14BI-O venkovní jedn.',mnozstvi:18,cena:5500},{nazev:'Měděné trubky 1/4"+3/8" 15m sada',mnozstvi:18,cena:2200}],poznamka:'Montáž do konce dubna, ověřit sklad'},
-{id:gid(),cislo:'OBJ-2026-0004',zakaznik:'ELEKTRODESIGN s.r.o.',kontakt:'objednavky@elektrodesign.cz',popis:'Náhradní filtry a servisní materiál',castka:15800,stav:'dokončená',createdAt:d(25),termin:d(10),createdBy:'Petr Svoboda',polozky:[{nazev:'Filtr kazetový F7 287x592x48',mnozstvi:20,cena:450},{nazev:'Těsnící páska VKT 50mm',mnozstvi:10,cena:180},{nazev:'Servisní sada DUPLEX 370',mnozstvi:2,cena:1950}],poznamka:'Doručeno, vše OK'},
-{id:gid(),cislo:'OBJ-2026-0005',zakaznik:'Sinclair Global Group s.r.o.',kontakt:'velkoobchod@sinclair-air.com',popis:'Kazetové klimatizace pro kancelářské prostory',castka:156000,stav:'potvrzená',createdAt:d(5),termin:fut(14),createdBy:'Jan Novák',polozky:[{nazev:'Sinclair UNI-24BI kazetová jedn.',mnozstvi:6,cena:18500},{nazev:'Sinclair ASGE-24BI-O venkovní jedn.',mnozstvi:6,cena:7500}],poznamka:''},
-{id:gid(),cislo:'OBJ-2026-0006',zakaznik:'Lindab s.r.o.',kontakt:'orders@lindab.cz',popis:'Požární klapky a příslušenství',castka:67500,stav:'nová',createdAt:d(1),termin:fut(21),createdBy:'Petr Svoboda',polozky:[{nazev:'Požární klapka PKI-S 250mm EI90',mnozstvi:8,cena:5800},{nazev:'Požární klapka PKI-S 200mm EI90',mnozstvi:5,cena:4500}],poznamka:'Pro projekt ZŠ Hostivař, nutný atest'}
-];
-var _fakturyPrijate=[
-{id:gid(),cislo:'FP-2026-0001',dodavatel:'ELEKTRODESIGN s.r.o.',ico:'25788451',dic:'CZ25788451',adresa:'Modletice 93, 251 01 Říčany',castkaBezDph:15800,dphSazba:21,castka:19118,vs:'20260001',platba:'převodem',stav:'zaplacená',splatnost:d(5),datumPrijeti:d(21),duzp:d(22),createdAt:d(20),createdBy:'Jan Novák',polozky:[{nazev:'Filtr kazetový F7',mnozstvi:20,cena:450},{nazev:'Těsnící páska VKT 50mm',mnozstvi:10,cena:180},{nazev:'Servisní sada DUPLEX 370',mnozstvi:2,cena:1950}],poznamka:'Uhrazeno 1.3.2026',objednavkaId:null},
-{id:gid(),cislo:'FP-2026-0002',dodavatel:'Lindab s.r.o.',ico:'27128024',dic:'CZ27128024',adresa:'Zápy 550, 250 01 Brandýs n.L.',castkaBezDph:94200,dphSazba:21,castka:113982,vs:'20260002',platba:'převodem',stav:'schválená',splatnost:fut(8),datumPrijeti:d(7),duzp:d(8),createdAt:d(6),createdBy:'Petr Svoboda',polozky:[{nazev:'Spiro potrubí 200mm 3m',mnozstvi:40,cena:980},{nazev:'Spiro potrubí 160mm 3m',mnozstvi:25,cena:750},{nazev:'Koleno 90° 200mm',mnozstvi:20,cena:420}],poznamka:'',objednavkaId:null},
-{id:gid(),cislo:'FP-2026-0003',dodavatel:'Sinclair Global Group s.r.o.',ico:'24818666',dic:'CZ24818666',adresa:'Purkrabská 2, 110 00 Praha 1',castkaBezDph:48500,dphSazba:21,castka:58685,vs:'20260010',platba:'převodem',stav:'nová',splatnost:d(3),datumPrijeti:d(4),duzp:d(5),createdAt:d(4),createdBy:'Jan Novák',polozky:[{nazev:'Chladivo R32 10kg',mnozstvi:5,cena:6200},{nazev:'Servisní ventil 1/4"',mnozstvi:20,cena:850}],poznamka:'Po splatnosti! Urgovat.',objednavkaId:null}
-];
-var _fakturyVydane=[
-{id:gid(),cislo:'FV-2026-0001',odberatel:'Bytový dům Vinohrady — SVJ',ico:'01234567',dic:'CZ01234567',adresa:'Korunní 88, Praha 10',castkaBezDph:187500,dphSazba:21,castka:226875,vs:'20260003',platba:'převodem',stav:'odeslaná',splatnost:fut(5),datumVystaveni:d(10),duzp:d(10),createdAt:d(10),createdBy:'Jan Novák',polozky:[{nazev:'Rekuperační jednotka DUPLEX 370 EC5',mnozstvi:3,cena:42500},{nazev:'Tlumič hluku DH 200/600',mnozstvi:6,cena:3200}],poznamka:'',zakazkaId:null},
-{id:gid(),cislo:'FV-2026-0002',odberatel:'Rezidence Karlín — developer',ico:'87654321',dic:'CZ87654321',adresa:'Křižíkova 42, Praha 8',castkaBezDph:342000,dphSazba:21,castka:413820,vs:'20260004',platba:'převodem',stav:'vystavená',splatnost:d(2),datumVystaveni:d(16),duzp:d(16),createdAt:d(16),createdBy:'Petr Svoboda',polozky:[{nazev:'Sinclair ASH-09BIS2 nástěnná jedn.',mnozstvi:18,cena:12500},{nazev:'Sinclair ASGE-14BI-O venkovní jedn.',mnozstvi:18,cena:5500}],poznamka:'Po splatnosti!',zakazkaId:null},
-{id:gid(),cislo:'FV-2026-0003',odberatel:'Admin. budova Brno-Slatina',ico:'11223344',dic:'CZ11223344',adresa:'Tuřanka 1, Brno',castkaBezDph:94200,dphSazba:21,castka:113982,vs:'20260005',platba:'převodem',stav:'zaplacená',splatnost:d(10),datumVystaveni:d(25),duzp:d(25),createdAt:d(25),createdBy:'Jan Novák',polozky:[{nazev:'Spiro potrubí 200mm 3m',mnozstvi:40,cena:980},{nazev:'Koleno 90° 200mm',mnozstvi:20,cena:420},{nazev:'T-kus 200/160mm',mnozstvi:15,cena:580}],poznamka:'Uhrazeno.',zakazkaId:null}
-];
-var _prijemky=[
-{id:gid(),cislo:'PRI-2026-0001',objednavkaId:'id-104',zakaznik:'ELEKTRODESIGN s.r.o.',datumPrijmu:d(10),stav:'naskladněno',createdAt:d(10),createdBy:'Petr Svoboda',polozky:[{nazev:'Filtr kazetový F7 287x592x48',mnozstviObj:20,mnozstviPrijato:20,cena:450},{nazev:'Těsnící páska VKT 50mm',mnozstviObj:10,mnozstviPrijato:10,cena:180},{nazev:'Servisní sada DUPLEX 370',mnozstviObj:2,mnozstviPrijato:2,cena:1950}],poznamka:'Vše dodáno kompletně'},
-{id:gid(),cislo:'PRI-2026-0002',objednavkaId:'id-102',zakaznik:'Lindab s.r.o.',datumPrijmu:d(3),stav:'zkontrolováno',createdAt:d(3),createdBy:'Jan Novák',polozky:[{nazev:'Spiro potrubí 200mm 3m',mnozstviObj:40,mnozstviPrijato:30,cena:980},{nazev:'Spiro potrubí 160mm 3m',mnozstviObj:25,mnozstviPrijato:25,cena:750},{nazev:'Koleno 90° 200mm',mnozstviObj:20,mnozstviPrijato:20,cena:420}],poznamka:'Chybí 10ks spiro 200mm — dodávka příští týden'}
-];
-function fmtDate(x){if(!x)return'—';var dd=x instanceof Date?x:new Date(x);return dd.toLocaleDateString('cs-CZ')}
-function fmtMoney(v){if(v==null)return'—';return Number(v).toLocaleString('cs-CZ')+' Kč'}
-function stCls(s){return{nová:'st-new',potvrzená:'st-confirmed','v realizaci':'st-progress',dokončená:'st-done',zrušená:'st-cancelled',vystavená:'st-new',odeslaná:'st-confirmed',zaplacená:'st-done','po splatnosti':'st-overdue',stornovaná:'st-cancelled','zkontrolováno':'st-confirmed','naskladněno':'st-done',schválená:'st-confirmed'}[s]||'st-new'}
-function toIDate(x){var dd=x instanceof Date?x:new Date(x);return dd.toISOString().split('T')[0]}
-function defSplat(){var x=new Date();x.setDate(x.getDate()+14);return x.toISOString().split('T')[0]}
-function genCislo(p){return p+'-'+now.getFullYear()+'-'+String(Math.floor(Math.random()*9000)+1000)}
-function isOverdue(f){if(f.stav==='zaplacená'||f.stav==='stornovaná')return false;if(!f.splatnost)return false;return(f.splatnost instanceof Date?f.splatnost:new Date(f.splatnost))<new Date()}
-
-function switchTab(n){document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===n)});document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+n)})}
-
-function renderDashboard(){
-  var on=_objednavky.filter(function(o){return o.stav==='nová'}).length;
-  var or2=_objednavky.filter(function(o){return o.stav==='v realizaci'}).length;
-  var om=_objednavky.filter(function(o){var x=o.createdAt instanceof Date?o.createdAt:new Date(o.createdAt);return x.getMonth()===now.getMonth()&&x.getFullYear()===now.getFullYear()}).length;
-  var allFaktury=_fakturyPrijate.concat(_fakturyVydane);
-  var fn=allFaktury.filter(function(f){return f.stav==='odeslaná'||f.stav==='vystavená'||f.stav==='nová'||f.stav==='schválená'}).length;
-  var fp2=allFaktury.filter(isOverdue).length;
-  var fc=_fakturyVydane.reduce(function(s,f){return s+(f.castka||0)},0);
-  var fpc=_fakturyPrijate.reduce(function(s,f){return s+(f.castka||0)},0);
-  document.getElementById('dash-obj-nove').textContent=on;
-  document.getElementById('dash-obj-realizace').textContent=or2;
-  document.getElementById('dash-obj-mesic').textContent=om;
-  document.getElementById('dash-fak-nezaplacene').textContent=fn;
-  document.getElementById('dash-fak-splatnost').textContent=fp2;
-  document.getElementById('dash-fak-celkem').textContent=fmtMoney(fc);
-  var pn=_prijemky.filter(function(p){return p.stav==='nová'||p.stav==='zkontrolováno'}).length;
-  document.getElementById('dash-fp-celkem').textContent=fmtMoney(fpc);
-  var all=_objednavky.slice(0,5).map(function(o){return{typ:'OBJ',cislo:o.cislo,stav:o.stav,date:o.createdAt,z:o.zakaznik}}).concat(_fakturyPrijate.slice(0,3).map(function(f){return{typ:'FP',cislo:f.cislo,stav:isOverdue(f)?'po splatnosti':f.stav,date:f.createdAt,z:f.dodavatel}})).concat(_fakturyVydane.slice(0,3).map(function(f){return{typ:'FV',cislo:f.cislo,stav:isOverdue(f)?'po splatnosti':f.stav,date:f.createdAt,z:f.odberatel}})).sort(function(a,b){return new Date(b.date)-new Date(a.date)}).slice(0,8);
-  document.getElementById('dash-recent').innerHTML=all.map(function(a){return'<tr><td><span class="typ-badge typ-'+a.typ.toLowerCase()+'">'+a.typ+'</span></td><td>'+a.cislo+'</td><td>'+(a.z||'—')+'</td><td><span class="stav-chip '+stCls(a.stav)+'">'+(a.stav||'—')+'</span></td></tr>'}).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Žádné záznamy</td></tr>';
+async function apiCheck() {
+  try {
+    var r = await fetch('/api/health');
+    var d = await r.json();
+    if (d.status === 'ok') { _apiMode = true; document.getElementById('conn-status').className = 'conn-badge conn-ok'; document.getElementById('conn-status').textContent = 'ONLINE'; }
+  } catch(e) { _apiMode = false; }
 }
 
+async function apiGet(url) {
+  if (!_apiMode) return null;
+  try { var r = await fetch(API_BASE + url); return await r.json(); } catch(e) { return null; }
+}
+
+async function apiPost(url, data) {
+  if (!_apiMode) return null;
+  try { var r = await fetch(API_BASE + url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) }); return await r.json(); } catch(e) { return null; }
+}
+
+async function apiPut(url, data) {
+  if (!_apiMode) return null;
+  try { var r = await fetch(API_BASE + url, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) }); return await r.json(); } catch(e) { return null; }
+}
+
+async function apiDel(url) {
+  if (!_apiMode) return null;
+  try { var r = await fetch(API_BASE + url, { method: 'DELETE' }); return await r.json(); } catch(e) { return null; }
+}
+
+/* ===== UTILS ===== */
+function gid(){return crypto.randomUUID?crypto.randomUUID():('id-'+Math.random().toString(36).substr(2,9)+Date.now().toString(36))}
+function d(n){var t=new Date();t.setDate(t.getDate()-n);return t}
+function fut(n){var t=new Date();t.setDate(t.getDate()+n);return t}
+function fmtDate(v){if(!v)return'\u2014';var dt=new Date(v);if(isNaN(dt))return String(v);return dt.toLocaleDateString('cs-CZ')}
+function fmtMoney(v){if(v==null)return'0 K\u010d';return Number(v).toLocaleString('cs-CZ')+' K\u010d'}
+function toIDate(v){if(!v)return'';var dt=new Date(v);if(isNaN(dt))return'';return dt.toISOString().split('T')[0]}
+function defSplat(){var t=new Date();t.setDate(t.getDate()+14);return toIDate(t)}
+function isOverdue(x){if(!x.splatnost)return false;if(x.stav==='zaplacen\u00e1'||x.stav==='stornovan\u00e1')return false;return new Date(x.splatnost)<new Date()}
+function stCls(s){if(!s)return'st-new';var m={'nov\u00e1':'st-new','potvrzen\u00e1':'st-confirmed','v realizaci':'st-progress','dokon\u010den\u00e1':'st-done','zru\u0161en\u00e1':'st-cancelled','vystaven\u00e1':'st-new','odeslan\u00e1':'st-progress','zaplacen\u00e1':'st-done','stornovan\u00e1':'st-cancelled','schv\u00e1len\u00e1':'st-confirmed','po splatnosti':'st-overdue','zkontrolov\u00e1no':'st-confirmed','naskladn\u011bno':'st-done','p\u0159ipraven\u00e1':'st-confirmed','vyd\u00e1no':'st-done'};return m[s]||'st-new'}
+function genCislo(pfx){var y=new Date().getFullYear();var n=Math.floor(Math.random()*9000)+1000;return pfx+'-'+y+'-'+String(n).padStart(4,'0')}
+
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===name)});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+name)});
+}
+function closeModal(id){document.getElementById(id).style.display='none'}
+
+/* ===== DEMO DATA ===== */
+var _objednavky=[
+{id:gid(),cislo:'OBJ-2026-0001',zakaznik:'ELEKTRODESIGN s.r.o.',kontakt:'objednavky@elektrodesign.cz, +420 281 015 015',popis:'Ventila\u010dn\u00ed jednotky a p\u0159\u00edslu\u0161enstv\u00ed pro projekt Rezidence Karl\u00edn',castka:187500,stav:'potvrzen\u00e1',createdAt:d(12),termin:fut(18),createdBy:'Jan Nov\u00e1k',polozky:[{nazev:'Rekupera\u010dn\u00ed jednotka DUPLEX 370 EC5',mnozstvi:3,cena:42500},{nazev:'Tlumi\u010d hluku DH 200/600',mnozstvi:6,cena:3200},{nazev:'Filtr kazetov\u00fd M5 287x592x48',mnozstvi:12,cena:890}],poznamka:'Dod\u00e1n\u00ed na stavbu, kontakt stavbyvedouc\u00ed Ing. Dvo\u0159\u00e1k'},
+{id:gid(),cislo:'OBJ-2026-0002',zakaznik:'Lindab s.r.o.',kontakt:'orders@lindab.cz, +420 233 107 111',popis:'VZT potrub\u00ed a tvarovky pro admin. budovu Brno-Slatina',castka:94200,stav:'v realizaci',createdAt:d(8),termin:fut(5),createdBy:'Petr Svoboda',polozky:[{nazev:'Spiro potrub\u00ed 200mm 3m',mnozstvi:40,cena:980},{nazev:'Spiro potrub\u00ed 160mm 3m',mnozstvi:25,cena:750},{nazev:'Koleno 90\u00b0 200mm',mnozstvi:20,cena:420},{nazev:'T-kus 200/160mm',mnozstvi:15,cena:580},{nazev:'Regula\u010dn\u00ed klapka 200mm',mnozstvi:10,cena:890}],poznamka:'\u010c\u00e1ste\u010dn\u00e1 dod\u00e1vka prob\u011bhla, zbytek do konce t\u00fddne'},
+{id:gid(),cislo:'OBJ-2026-0003',zakaznik:'Sinclair Global Group s.r.o.',kontakt:'velkoobchod@sinclair-air.com',popis:'Klimatiza\u010dn\u00ed jednotky pro bytov\u00fd d\u016fm Vinohrady',castka:342000,stav:'nov\u00e1',createdAt:d(2),termin:fut(30),createdBy:'Jan Nov\u00e1k',polozky:[{nazev:'Sinclair ASH-09BIS2 n\u00e1st\u011bnn\u00e1 jedn.',mnozstvi:18,cena:12500},{nazev:'Sinclair ASGE-14BI-O venkovn\u00ed jedn.',mnozstvi:18,cena:5500}],poznamka:'Mont\u00e1\u017e do konce dubna'},
+{id:gid(),cislo:'OBJ-2026-0004',zakaznik:'Daikin Czech Republic s.r.o.',kontakt:'info@daikin.cz',popis:'N\u00e1hradn\u00ed d\u00edly pro servisn\u00ed z\u00e1krok',castka:28750,stav:'dokon\u010den\u00e1',createdAt:d(20),termin:d(5),createdBy:'Petr Svoboda',polozky:[{nazev:'Kompresor scroll',mnozstvi:1,cena:18500},{nazev:'Expanzn\u00ed ventil',mnozstvi:2,cena:3200},{nazev:'Filtr drier',mnozstvi:2,cena:1825}],poznamka:'Servis pro Hotel Diplomat'}
+];
+
+var _fakturyPrijate=[
+{id:gid(),cislo:'FP-2026-0001',dodavatel:'ELEKTRODESIGN s.r.o.',ico:'26178559',dic:'CZ26178559',adresa:'Vym\u011b\u0159ick\u00e1 1234, Praha 10',datumPrijeti:d(10),duzp:d(10),castkaBezDph:187500,dphSazba:21,castka:226875,vs:'2026001',platba:'p\u0159evodem',stav:'nov\u00e1',splatnost:fut(4),createdAt:d(10),createdBy:'Progresklima',polozky:[{nazev:'Rekupera\u010dn\u00ed jednotka DUPLEX',mnozstvi:3,cena:42500},{nazev:'Tlumi\u010d hluku DH 200/600',mnozstvi:6,cena:3200}],poznamka:'K objedn\u00e1vce OBJ-2026-0001',objednavkaId:null},
+{id:gid(),cislo:'FP-2026-0002',dodavatel:'Lindab s.r.o.',ico:'27890554',dic:'CZ27890554',adresa:'U n\u00e1kladov\u00e9ho n\u00e1dra\u017e\u00ed 6, Praha 3',datumPrijeti:d(6),duzp:d(6),castkaBezDph:94200,dphSazba:21,castka:113982,vs:'2026002',platba:'p\u0159evodem',stav:'schv\u00e1len\u00e1',splatnost:fut(8),createdAt:d(6),createdBy:'Progresklima',polozky:[{nazev:'Spiro potrub\u00ed 200mm',mnozstvi:40,cena:980},{nazev:'Koleno 90\u00b0 200mm',mnozstvi:20,cena:420}],poznamka:''},
+{id:gid(),cislo:'FP-2026-0003',dodavatel:'IMP Klima s.r.o.',ico:'12345678',dic:'CZ12345678',adresa:'Pr\u016fmyslov\u00e1 12, Brno',datumPrijeti:d(25),duzp:d(25),castkaBezDph:45000,dphSazba:21,castka:54450,vs:'2026003',platba:'p\u0159evodem',stav:'zaplacen\u00e1',splatnost:d(3),createdAt:d(25),createdBy:'Progresklima',polozky:[{nazev:'Kruhov\u00fd ventil\u00e1tor potrub.',mnozstvi:5,cena:6200},{nazev:'Protipo\u017e\u00e1rn\u00ed klapka',mnozstvi:4,cena:2250}],poznamka:'Zaplaceno 5.3.'}
+];
+
+var _fakturyVydane=[
+{id:gid(),cislo:'FV-2026-0001',odberatel:'Rezidence Karl\u00edn s.r.o.',ico:'09876543',dic:'CZ09876543',adresa:'K\u0159i\u017e\u00edkova 22, Praha 8',datumVystaveni:d(5),duzp:d(5),castkaBezDph:295000,dphSazba:21,castka:356950,vs:'260001',platba:'p\u0159evodem',stav:'vystaven\u00e1',splatnost:fut(9),createdAt:d(5),createdBy:'Progresklima',polozky:[{nazev:'Mont\u00e1\u017e VZT syst\u00e9mu',mnozstvi:1,cena:175000},{nazev:'Materi\u00e1l VZT',mnozstvi:1,cena:120000}],poznamka:'Z\u00e1kazka Karl\u00edn',zakazkaId:null},
+{id:gid(),cislo:'FV-2026-0002',odberatel:'Hotel Diplomat a.s.',ico:'11223344',dic:'CZ11223344',adresa:'Evropsk\u00e1 15, Praha 6',datumVystaveni:d(15),duzp:d(15),castkaBezDph:78500,dphSazba:21,castka:94985,vs:'260002',platba:'p\u0159evodem',stav:'zaplacen\u00e1',splatnost:d(1),createdAt:d(15),createdBy:'Progresklima',polozky:[{nazev:'Servisn\u00ed z\u00e1krok klima',mnozstvi:1,cena:42000},{nazev:'N\u00e1hradn\u00ed d\u00edly',mnozstvi:1,cena:36500}],poznamka:''},
+{id:gid(),cislo:'FV-2026-0003',odberatel:'Bytov\u00fd d\u016fm Vinohrady SVJ',ico:'55667788',dic:'',adresa:'Korunn\u00ed 88, Praha 2',datumVystaveni:d(1),duzp:d(1),castkaBezDph:520000,dphSazba:21,castka:629200,vs:'260003',platba:'p\u0159evodem',stav:'odeslan\u00e1',splatnost:fut(13),createdAt:d(1),createdBy:'Progresklima',polozky:[{nazev:'Klimatizace 18 byt\u016f \u2014 mont\u00e1\u017e',mnozstvi:1,cena:280000},{nazev:'Klimatizace 18 byt\u016f \u2014 materi\u00e1l',mnozstvi:1,cena:240000}],poznamka:'Z\u00e1loha 200 000 K\u010d uhrazena'}
+];
+
+var _prijemky=[
+{id:gid(),cislo:'PRI-2026-0001',objednavkaId:_objednavky[0].id,zakaznik:'ELEKTRODESIGN s.r.o.',datumPrijmu:d(9),stav:'zkontrolov\u00e1no',createdAt:d(9),createdBy:'Progresklima',polozky:[{nazev:'Rekupera\u010dn\u00ed jednotka DUPLEX',mnozstviObj:3,mnozstviPrijato:3,cena:42500},{nazev:'Tlumi\u010d hluku DH 200/600',mnozstviObj:6,mnozstviPrijato:5,cena:3200},{nazev:'Filtr kazetov\u00fd M5',mnozstviObj:12,mnozstviPrijato:12,cena:890}],poznamka:'1 ks tlumi\u010de chyb\u00ed - reklamace u dodavatele'},
+{id:gid(),cislo:'PRI-2026-0002',objednavkaId:_objednavky[1].id,zakaznik:'Lindab s.r.o.',datumPrijmu:d(4),stav:'nov\u00e1',createdAt:d(4),createdBy:'Progresklima',polozky:[{nazev:'Spiro potrub\u00ed 200mm',mnozstviObj:40,mnozstviPrijato:40,cena:980},{nazev:'Koleno 90\u00b0',mnozstviObj:20,mnozstviPrijato:20,cena:420}],poznamka:'Kompletn\u00ed dod\u00e1vka'}
+];
+
+var _vydejky=[
+{id:gid(),cislo:'VYD-2026-0001',zakaznik:'Rezidence Karl\u00edn s.r.o.',objednavkaId:_objednavky[0].id,datumVydeje:d(7),stav:'vyd\u00e1no',createdAt:d(7),createdBy:'Progresklima',polozky:[{nazev:'Rekupera\u010dn\u00ed jednotka DUPLEX',mnozstvi:3,cena:42500},{nazev:'Tlumi\u010d hluku DH 200/600',mnozstvi:5,cena:3200}],poznamka:'V\u00fddej na stavbu Karl\u00edn'},
+{id:gid(),cislo:'VYD-2026-0002',zakaznik:'Hotel Diplomat a.s.',objednavkaId:null,datumVydeje:d(3),stav:'p\u0159ipraven\u00e1',createdAt:d(3),createdBy:'Progresklima',polozky:[{nazev:'Kompresor scroll',mnozstvi:1,cena:18500},{nazev:'Expanzn\u00ed ventil',mnozstvi:2,cena:3200}],poznamka:'P\u0159ipraven\u00e9 k vyzvednut\u00ed'}
+];
+
+/* ===== LOAD DATA FROM API ===== */
+async function loadData() {
+  await apiCheck();
+  if (_apiMode) {
+    var obj = await apiGet('/api/objednavky');
+    if (obj && obj.length) _objednavky = obj;
+    var fp = await apiGet('/api/faktury');
+    if (fp) {
+      _fakturyPrijate = fp.filter(function(f){ return (f.cislo||'').indexOf('FP')===0; });
+      _fakturyVydane = fp.filter(function(f){ return (f.cislo||'').indexOf('FV')===0 || (f.cislo||'').indexOf('FP')!==0; });
+    }
+    var pri = await apiGet('/api/prijemky');
+    if (pri && pri.length) _prijemky = pri;
+    var vyd = await apiGet('/api/vydejky');
+    if (vyd && vyd.length) _vydejky = vyd;
+  }
+  renderAll();
+}
+
+function renderAll() {
+  renderDashboard();
+  renderObjednavky();
+  renderFakturyPrijate();
+  renderFakturyVydane();
+  renderPrijemky();
+  renderVydejky();
+}
+
+/* ===== DASHBOARD ===== */
+function renderDashboard(){
+  var now=new Date(),today=toIDate(now),monthStart=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  var objNove=_objednavky.filter(function(o){return o.stav==='nov\u00e1'}).length;
+  var objReal=_objednavky.filter(function(o){return o.stav==='v realizaci'}).length;
+  var objMesic=_objednavky.filter(function(o){return o.createdAt&&new Date(o.createdAt)>=new Date(monthStart)}).length;
+  var fvNezapl=_fakturyVydane.filter(function(f){return f.stav==='vystaven\u00e1'||f.stav==='odeslan\u00e1'}).length;
+  var fvSplat=_fakturyVydane.filter(function(f){return isOverdue(f)}).length;
+  var fvCelkem=_fakturyVydane.reduce(function(s,f){return s+(f.castka||0)},0);
+  var fpCelkem=_fakturyPrijate.reduce(function(s,f){return s+(f.castka||0)},0);
+
+  document.getElementById('dash-obj-nove').textContent=objNove;
+  document.getElementById('dash-obj-realizace').textContent=objReal;
+  document.getElementById('dash-obj-mesic').textContent=objMesic;
+  document.getElementById('dash-fak-nezaplacene').textContent=fvNezapl;
+  document.getElementById('dash-fak-splatnost').textContent=fvSplat;
+  document.getElementById('dash-fak-celkem').textContent=fmtMoney(fvCelkem);
+  document.getElementById('dash-fp-celkem').textContent=fmtMoney(fpCelkem);
+
+  // Bar chart - FV monthly
+  renderBarChart('dash-chart-fv', getMonthlyData(_fakturyVydane, 'castka'), 'var(--green)');
+  // Bar chart - FP vs FV
+  renderCompareChart('dash-chart-fp-fv');
+
+  // Recent activity
+  var all=[];
+  _objednavky.slice(0,3).forEach(function(o){all.push({typ:'OBJ',cls:'typ-obj',cislo:o.cislo,partner:o.zakaznik,castka:o.castka,stav:o.stav,date:o.createdAt})});
+  _fakturyPrijate.slice(0,3).forEach(function(f){all.push({typ:'FP',cls:'typ-fp',cislo:f.cislo,partner:f.dodavatel,castka:f.castka,stav:f.stav,date:f.createdAt})});
+  _fakturyVydane.slice(0,3).forEach(function(f){all.push({typ:'FV',cls:'typ-fv',cislo:f.cislo,partner:f.odberatel,castka:f.castka,stav:f.stav,date:f.createdAt})});
+  _vydejky.slice(0,2).forEach(function(v){all.push({typ:'VYD',cls:'typ-vyk',cislo:v.cislo,partner:v.zakaznik,castka:0,stav:v.stav,date:v.createdAt})});
+  all.sort(function(a,b){return new Date(b.date)-new Date(a.date)});
+  document.getElementById('dash-recent').innerHTML=all.slice(0,10).map(function(x){return'<tr><td><span class="typ-badge '+x.cls+'">'+x.typ+'</span></td><td>'+x.cislo+'</td><td>'+(x.partner||'\u2014')+'</td><td>'+fmtMoney(x.castka)+'</td><td><span class="stav-chip '+stCls(x.stav)+'">'+(x.stav||'\u2014')+'</span></td></tr>'}).join('');
+}
+
+function getMonthlyData(arr, field) {
+  var now = new Date(), months = [];
+  for (var i = 5; i >= 0; i--) {
+    var md = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var ms = md.getFullYear() + '-' + String(md.getMonth()+1).padStart(2,'0');
+    var me = new Date(md.getFullYear(), md.getMonth()+1, 0);
+    var total = arr.filter(function(x) {
+      if (!x.createdAt) return false;
+      var d = new Date(x.createdAt);
+      return d >= md && d <= me;
+    }).reduce(function(s, x) { return s + (x[field] || 0); }, 0);
+    months.push({ label: ms.substr(5), value: total });
+  }
+  return months;
+}
+
+function renderBarChart(elId, data, color) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var max = Math.max.apply(null, data.map(function(d){return d.value})) || 1;
+  el.innerHTML = data.map(function(d) {
+    var h = Math.round(d.value / max * 100);
+    return '<div class="bar-col"><div class="bar-val">' + (d.value > 999 ? Math.round(d.value/1000) + 'k' : d.value) + '</div><div class="bar-fill" style="height:'+h+'%;background:'+color+'"></div><div class="bar-lbl">'+d.label+'</div></div>';
+  }).join('');
+}
+
+function renderCompareChart(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var now = new Date(), html = '';
+  var max = 1;
+  var data = [];
+  for (var i = 5; i >= 0; i--) {
+    var md = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var ms = md.getFullYear() + '-' + String(md.getMonth()+1).padStart(2,'0');
+    var me = new Date(md.getFullYear(), md.getMonth()+1, 0);
+    var fp = _fakturyPrijate.filter(function(x){if(!x.createdAt)return false;var dd=new Date(x.createdAt);return dd>=md&&dd<=me}).reduce(function(s,x){return s+(x.castka||0)},0);
+    var fv = _fakturyVydane.filter(function(x){if(!x.createdAt)return false;var dd=new Date(x.createdAt);return dd>=md&&dd<=me}).reduce(function(s,x){return s+(x.castka||0)},0);
+    data.push({label:ms.substr(5),fp:fp,fv:fv});
+    if(fp>max)max=fp; if(fv>max)max=fv;
+  }
+  el.innerHTML = data.map(function(d){
+    var hfp=Math.round(d.fp/max*100),hfv=Math.round(d.fv/max*100);
+    return '<div class="bar-col" style="gap:2px"><div class="bar-val" style="font-size:8px">'+(d.fv>999?Math.round(d.fv/1000)+'k':d.fv)+'</div><div class="bar-fill" style="height:'+hfv+'%;background:var(--green)"></div><div class="bar-fill" style="height:'+hfp+'%;background:var(--err);margin-top:2px"></div><div class="bar-val" style="font-size:8px;color:var(--err)">'+(d.fp>999?Math.round(d.fp/1000)+'k':d.fp)+'</div><div class="bar-lbl">'+d.label+'</div></div>';
+  }).join('');
+}
+
+/* ===== OBJEDNAVKY ===== */
 var _selObj=null;
 function renderObjednavky(){
   var f=(document.getElementById('obj-filter').value||'').toLowerCase(),sf=document.getElementById('obj-stav-filter').value,list=_objednavky;
-  if(f)list=list.filter(function(o){return(o.cislo||'').toLowerCase().indexOf(f)>=0||(o.zakaznik||'').toLowerCase().indexOf(f)>=0});
-  if(sf)list=list.filter(function(o){return o.stav===sf});
-  document.getElementById('obj-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné objednávky</div>':list.map(function(o){return'<div class="item-card '+(_selObj===o.id?'active':'')+'" onclick="selectObj(\''+o.id+'\')"><div class="item-head"><span class="item-num">'+o.cislo+'</span><span class="stav-chip '+stCls(o.stav)+'">'+(o.stav||'nová')+'</span></div><div class="item-sub">'+(o.zakaznik||'—')+'</div><div class="item-meta">'+fmtDate(o.createdAt)+' · '+fmtMoney(o.castka)+'</div></div>'}).join('');
+  if(f)list=list.filter(function(x){return(x.cislo||'').toLowerCase().indexOf(f)>=0||(x.zakaznik||'').toLowerCase().indexOf(f)>=0||(x.popis||'').toLowerCase().indexOf(f)>=0});
+  if(sf)list=list.filter(function(x){return x.stav===sf});
+  document.getElementById('obj-list').innerHTML=list.length===0?'<div class="empty-msg">\u017d\u00e1dn\u00e9 objedn\u00e1vky</div>':list.map(function(x){return'<div class="item-card '+(_selObj===x.id?'active':'')+'" onclick="selectObj(\''+x.id+'\')"><div class="item-head"><span class="item-num">'+x.cislo+'</span><span class="stav-chip '+stCls(x.stav)+'">'+(x.stav||'nov\u00e1')+'</span></div><div class="item-sub">'+(x.zakaznik||'\u2014')+'</div><div class="item-meta">'+fmtDate(x.createdAt)+' \u00b7 '+fmtMoney(x.castka)+'</div></div>'}).join('');
   if(_selObj)showObjDetail(_selObj);
 }
 function selectObj(id){_selObj=id;renderObjednavky()}
 function showObjDetail(id){
-  var o=_objednavky.find(function(x){return x.id===id});if(!o){document.getElementById('obj-detail').innerHTML='<div class="empty-msg">Vyberte objednávku</div>';return}
-  var ph=o.polozky&&o.polozky.length?'<table class="pol-table"><thead><tr><th>Název</th><th>Množ.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+o.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez položek</span>';
-  document.getElementById('obj-detail').innerHTML='<div class="detail-header"><h2>'+o.cislo+'</h2><span class="stav-chip '+stCls(o.stav)+'">'+(o.stav||'nová')+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(o.zakaznik||'—')+'</span></div><div class="dfield"><label>Kontakt</label><span>'+(o.kontakt||'—')+'</span></div><div class="dfield"><label>Vytvořeno</label><span>'+fmtDate(o.createdAt)+'</span></div><div class="dfield"><label>Termín</label><span>'+fmtDate(o.termin)+'</span></div><div class="dfield"><label>Částka</label><span>'+fmtMoney(o.castka)+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(o.createdBy||'—')+'</span></div></div><div class="dfield full"><label>Popis</label><p>'+(o.popis||'—')+'</p></div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(o.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeObjStav(\''+o.id+'\',this.value)"><option value="nová"'+(o.stav==='nová'?' selected':'')+'>Nová</option><option value="potvrzená"'+(o.stav==='potvrzená'?' selected':'')+'>Potvrzená</option><option value="v realizaci"'+(o.stav==='v realizaci'?' selected':'')+'>V realizaci</option><option value="dokončená"'+(o.stav==='dokončená'?' selected':'')+'>Dokončená</option><option value="zrušená"'+(o.stav==='zrušená'?' selected':'')+'>Zrušená</option></select><button class="btn-action btn-edit" onclick="openObjModal(\''+o.id+'\')">Upravit</button><button class="btn-action btn-invoice" onclick="createFakturaFromObj(\''+o.id+'\')">Vytvořit fakturu</button><button class="btn-action btn-upload" onclick="createPrijemkaFromObj(\''+o.id+'\')">Vytvořit příjemku</button><button class="btn-action btn-del" onclick="deleteObj(\''+o.id+'\')">Smazat</button></div>';
+  var o=_objednavky.find(function(x){return x.id===id});if(!o){document.getElementById('obj-detail').innerHTML='<div class="empty-msg">Vyberte objedn\u00e1vku</div>';return}
+  var ph=o.polozky&&o.polozky.length?'<table class="pol-table"><thead><tr><th>N\u00e1zev</th><th>Mno\u017e.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+o.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez polo\u017eek</span>';
+  document.getElementById('obj-detail').innerHTML='<div class="detail-header"><h2>'+o.cislo+'</h2><span class="stav-chip '+stCls(o.stav)+'">'+(o.stav||'nov\u00e1')+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(o.zakaznik||'\u2014')+'</span></div><div class="dfield"><label>Kontakt</label><span>'+(o.kontakt||'\u2014')+'</span></div><div class="dfield"><label>Vytvo\u0159eno</label><span>'+fmtDate(o.createdAt)+'</span></div><div class="dfield"><label>Term\u00edn</label><span>'+fmtDate(o.termin)+'</span></div><div class="dfield"><label>\u010c\u00e1stka</label><span>'+fmtMoney(o.castka)+'</span></div><div class="dfield"><label>Vytvo\u0159il</label><span>'+(o.createdBy||'\u2014')+'</span></div></div><div class="dfield full"><label>Popis</label><p>'+(o.popis||'\u2014')+'</p></div><div class="dfield full"><label>Polo\u017eky</label>'+ph+'</div><div class="dfield full"><label>Pozn\u00e1mka</label><p>'+(o.poznamka||'\u2014')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeObjStav(\''+o.id+'\',this.value)"><option value="nov\u00e1"'+(o.stav==='nov\u00e1'?' selected':'')+'>Nov\u00e1</option><option value="potvrzen\u00e1"'+(o.stav==='potvrzen\u00e1'?' selected':'')+'>Potvrzen\u00e1</option><option value="v realizaci"'+(o.stav==='v realizaci'?' selected':'')+'>V realizaci</option><option value="dokon\u010den\u00e1"'+(o.stav==='dokon\u010den\u00e1'?' selected':'')+'>Dokon\u010den\u00e1</option><option value="zru\u0161en\u00e1"'+(o.stav==='zru\u0161en\u00e1'?' selected':'')+'>Zru\u0161en\u00e1</option></select><button class="btn-action btn-edit" onclick="openObjModal(\''+o.id+'\')">Upravit</button><button class="btn-action btn-invoice" onclick="createFakturaFromObj(\''+o.id+'\')">Vystavit FV</button><button class="btn-action btn-upload" onclick="createPrijemkaFromObj(\''+o.id+'\')">P\u0159\u00edjemka</button><button class="btn-action btn-print" onclick="createVydejkaFromObj(\''+o.id+'\')">V\u00fddejka</button><button class="btn-action btn-del" onclick="deleteObj(\''+o.id+'\')">Smazat</button></div>';
 }
-function changeObjStav(id,s){var o=_objednavky.find(function(x){return x.id===id});if(o){o.stav=s;renderObjednavky();renderDashboard()}}
-function deleteObj(id){if(!confirm('Smazat objednávku?'))return;_objednavky=_objednavky.filter(function(x){return x.id!==id});_selObj=null;document.getElementById('obj-detail').innerHTML='<div class="empty-msg">Vyberte objednávku</div>';renderObjednavky();renderDashboard()}
+function changeObjStav(id,s){var o=_objednavky.find(function(x){return x.id===id});if(o){o.stav=s;if(_apiMode)apiPut('/api/objednavky/'+id,{stav:s});renderObjednavky();renderDashboard()}}
+function deleteObj(id){if(!confirm('Smazat objedn\u00e1vku?'))return;_objednavky=_objednavky.filter(function(x){return x.id!==id});if(_apiMode)apiDel('/api/objednavky/'+id);_selObj=null;document.getElementById('obj-detail').innerHTML='<div class="empty-msg">Vyberte objedn\u00e1vku</div>';renderObjednavky();renderDashboard()}
 
-/* ===== FAKTURY PŘIJATÉ ===== */
+/* ===== FAKTURY PRIJATE ===== */
 var _selFp=null;
 function renderFakturyPrijate(){
   var f=(document.getElementById('fp-filter').value||'').toLowerCase(),sf=document.getElementById('fp-stav-filter').value,list=_fakturyPrijate;
   if(f)list=list.filter(function(x){return(x.cislo||'').toLowerCase().indexOf(f)>=0||(x.dodavatel||'').toLowerCase().indexOf(f)>=0});
   if(sf)list=list.filter(function(x){return x.stav===sf});
-  document.getElementById('fp-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné přijaté faktury</div>':list.map(function(x){var ov=isOverdue(x),st=ov?'Po splatnosti':(x.stav||'nová'),sc=stCls(ov?'po splatnosti':x.stav);return'<div class="item-card '+(_selFp===x.id?'active':'')+' '+(ov?'overdue':'')+'" onclick="selectFp(\''+x.id+'\')"><div class="item-head"><span class="item-num">'+x.cislo+'</span><span class="stav-chip '+sc+'">'+st+'</span></div><div class="item-sub">'+(x.dodavatel||'—')+'</div><div class="item-meta">'+fmtDate(x.datumPrijeti)+' · '+fmtMoney(x.castka)+' · Splatnost: '+fmtDate(x.splatnost)+'</div></div>'}).join('');
+  document.getElementById('fp-list').innerHTML=list.length===0?'<div class="empty-msg">\u017d\u00e1dn\u00e9 p\u0159ijat\u00e9 faktury</div>':list.map(function(x){var ov=isOverdue(x),st=ov?'Po splatnosti':(x.stav||'nov\u00e1'),sc=stCls(ov?'po splatnosti':x.stav);return'<div class="item-card '+(_selFp===x.id?'active':'')+' '+(ov?'overdue':'')+'" onclick="selectFp(\''+x.id+'\')"><div class="item-head"><span class="item-num">'+x.cislo+'</span><span class="stav-chip '+sc+'">'+st+'</span></div><div class="item-sub">'+(x.dodavatel||'\u2014')+'</div><div class="item-meta">'+fmtDate(x.datumPrijeti)+' \u00b7 '+fmtMoney(x.castka)+' \u00b7 Splatnost: '+fmtDate(x.splatnost)+'</div></div>'}).join('');
   if(_selFp)showFpDetail(_selFp);
 }
 function selectFp(id){_selFp=id;renderFakturyPrijate()}
 function showFpDetail(id){
-  var f=_fakturyPrijate.find(function(x){return x.id===id});if(!f){document.getElementById('fp-detail').innerHTML='<div class="empty-msg">Vyberte přijatou fakturu</div>';return}
-  var ov=isOverdue(f),st=ov?'Po splatnosti':(f.stav||'nová'),sc=stCls(ov?'po splatnosti':f.stav);
-  var ph=f.polozky&&f.polozky.length?'<table class="pol-table"><thead><tr><th>Název</th><th>Množ.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+f.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez položek</span>';
-  var objLink=f.objednavkaId?(function(){var o=_objednavky.find(function(x){return x.id===f.objednavkaId});return o?o.cislo:'—'})():'—';
-  document.getElementById('fp-detail').innerHTML='<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(f.dodavatel||'—')+'</span></div><div class="dfield"><label>IČO</label><span>'+(f.ico||'—')+'</span></div><div class="dfield"><label>DIČ</label><span>'+(f.dic||'—')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'—')+'</span></div><div class="dfield"><label>Datum přijetí</label><span>'+fmtDate(f.datumPrijeti)+'</span></div><div class="dfield"><label>DUZP</label><span>'+fmtDate(f.duzp)+'</span></div><div class="dfield"><label>Splatnost</label><span>'+fmtDate(f.splatnost)+'</span></div><div class="dfield"><label>Objednávka</label><span>'+objLink+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'—')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'—')+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(f.createdBy||'—')+'</span></div></div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(f.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFpStav(\''+f.id+'\',this.value)"><option value="nová"'+(f.stav==='nová'?' selected':'')+'>Nová</option><option value="schválená"'+(f.stav==='schválená'?' selected':'')+'>Schválená</option><option value="zaplacená"'+(f.stav==='zaplacená'?' selected':'')+'>Zaplacená</option><option value="stornovaná"'+(f.stav==='stornovaná'?' selected':'')+'>Stornovaná</option></select><button class="btn-action btn-edit" onclick="openFpModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-del" onclick="deleteFp(\''+f.id+'\')">Smazat</button></div>';
+  var f=_fakturyPrijate.find(function(x){return x.id===id});if(!f){document.getElementById('fp-detail').innerHTML='<div class="empty-msg">Vyberte p\u0159ijatou fakturu</div>';return}
+  var ov=isOverdue(f),st=ov?'Po splatnosti':(f.stav||'nov\u00e1'),sc=stCls(ov?'po splatnosti':f.stav);
+  var ph=f.polozky&&f.polozky.length?'<table class="pol-table"><thead><tr><th>N\u00e1zev</th><th>Mno\u017e.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+f.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez polo\u017eek</span>';
+  document.getElementById('fp-detail').innerHTML='<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(f.dodavatel||'\u2014')+'</span></div><div class="dfield"><label>I\u010cO</label><span>'+(f.ico||'\u2014')+'</span></div><div class="dfield"><label>DI\u010c</label><span>'+(f.dic||'\u2014')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'\u2014')+'</span></div><div class="dfield"><label>Datum p\u0159ijet\u00ed</label><span>'+fmtDate(f.datumPrijeti)+'</span></div><div class="dfield"><label>DUZP</label><span>'+fmtDate(f.duzp)+'</span></div><div class="dfield"><label>Splatnost</label><span>'+fmtDate(f.splatnost)+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'\u2014')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'\u2014')+'</span></div></div><div class="dfield full"><label>Polo\u017eky</label>'+ph+'</div><div class="dfield full"><label>Pozn\u00e1mka</label><p>'+(f.poznamka||'\u2014')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFpStav(\''+f.id+'\',this.value)"><option value="nov\u00e1"'+(f.stav==='nov\u00e1'?' selected':'')+'>Nov\u00e1</option><option value="schv\u00e1len\u00e1"'+(f.stav==='schv\u00e1len\u00e1'?' selected':'')+'>Schv\u00e1len\u00e1</option><option value="zaplacen\u00e1"'+(f.stav==='zaplacen\u00e1'?' selected':'')+'>Zaplacen\u00e1</option><option value="stornovan\u00e1"'+(f.stav==='stornovan\u00e1'?' selected':'')+'>Stornovan\u00e1</option></select><button class="btn-action btn-edit" onclick="openFpModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-print" onclick="printFaktura(\'fp\',\''+f.id+'\')">Tisk / PDF</button><button class="btn-action btn-del" onclick="deleteFp(\''+f.id+'\')">Smazat</button></div>';
 }
-function changeFpStav(id,s){var f=_fakturyPrijate.find(function(x){return x.id===id});if(f){f.stav=s;renderFakturyPrijate();renderDashboard()}}
-function deleteFp(id){if(!confirm('Smazat přijatou fakturu?'))return;_fakturyPrijate=_fakturyPrijate.filter(function(x){return x.id!==id});_selFp=null;document.getElementById('fp-detail').innerHTML='<div class="empty-msg">Vyberte přijatou fakturu</div>';renderFakturyPrijate();renderDashboard()}
+function changeFpStav(id,s){var f=_fakturyPrijate.find(function(x){return x.id===id});if(f){f.stav=s;if(_apiMode)apiPut('/api/faktury/'+id,{stav:s});renderFakturyPrijate();renderDashboard()}}
+function deleteFp(id){if(!confirm('Smazat p\u0159ijatou fakturu?'))return;_fakturyPrijate=_fakturyPrijate.filter(function(x){return x.id!==id});if(_apiMode)apiDel('/api/faktury/'+id);_selFp=null;document.getElementById('fp-detail').innerHTML='<div class="empty-msg">Vyberte p\u0159ijatou fakturu</div>';renderFakturyPrijate();renderDashboard()}
 
-/* ===== FAKTURY VYDANÉ ===== */
+/* ===== FAKTURY VYDANE ===== */
 var _selFv=null;
 function renderFakturyVydane(){
   var f=(document.getElementById('fv-filter').value||'').toLowerCase(),sf=document.getElementById('fv-stav-filter').value,list=_fakturyVydane;
   if(f)list=list.filter(function(x){return(x.cislo||'').toLowerCase().indexOf(f)>=0||(x.odberatel||'').toLowerCase().indexOf(f)>=0});
   if(sf)list=list.filter(function(x){return x.stav===sf});
-  document.getElementById('fv-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné vydané faktury</div>':list.map(function(x){var ov=isOverdue(x),st=ov?'Po splatnosti':(x.stav||'vystavená'),sc=stCls(ov?'po splatnosti':x.stav);return'<div class="item-card '+(_selFv===x.id?'active':'')+' '+(ov?'overdue':'')+'" onclick="selectFv(\''+x.id+'\')"><div class="item-head"><span class="item-num">'+x.cislo+'</span><span class="stav-chip '+sc+'">'+st+'</span></div><div class="item-sub">'+(x.odberatel||'—')+'</div><div class="item-meta">'+fmtDate(x.datumVystaveni)+' · '+fmtMoney(x.castka)+' · Splatnost: '+fmtDate(x.splatnost)+'</div></div>'}).join('');
+  document.getElementById('fv-list').innerHTML=list.length===0?'<div class="empty-msg">\u017d\u00e1dn\u00e9 vydan\u00e9 faktury</div>':list.map(function(x){var ov=isOverdue(x),st=ov?'Po splatnosti':(x.stav||'vystaven\u00e1'),sc=stCls(ov?'po splatnosti':x.stav);return'<div class="item-card '+(_selFv===x.id?'active':'')+' '+(ov?'overdue':'')+'" onclick="selectFv(\''+x.id+'\')"><div class="item-head"><span class="item-num">'+x.cislo+'</span><span class="stav-chip '+sc+'">'+st+'</span></div><div class="item-sub">'+(x.odberatel||'\u2014')+'</div><div class="item-meta">'+fmtDate(x.datumVystaveni)+' \u00b7 '+fmtMoney(x.castka)+' \u00b7 Splatnost: '+fmtDate(x.splatnost)+'</div></div>'}).join('');
   if(_selFv)showFvDetail(_selFv);
 }
 function selectFv(id){_selFv=id;renderFakturyVydane()}
 function showFvDetail(id){
   var f=_fakturyVydane.find(function(x){return x.id===id});if(!f){document.getElementById('fv-detail').innerHTML='<div class="empty-msg">Vyberte vydanou fakturu</div>';return}
-  var ov=isOverdue(f),st=ov?'Po splatnosti':(f.stav||'vystavená'),sc=stCls(ov?'po splatnosti':f.stav);
-  var ph=f.polozky&&f.polozky.length?'<table class="pol-table"><thead><tr><th>Název</th><th>Množ.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+f.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez položek</span>';
-  document.getElementById('fv-detail').innerHTML='<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Odběratel</label><span>'+(f.odberatel||'—')+'</span></div><div class="dfield"><label>IČO</label><span>'+(f.ico||'—')+'</span></div><div class="dfield"><label>DIČ</label><span>'+(f.dic||'—')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'—')+'</span></div><div class="dfield"><label>Datum vystavení</label><span>'+fmtDate(f.datumVystaveni)+'</span></div><div class="dfield"><label>DUZP</label><span>'+fmtDate(f.duzp)+'</span></div><div class="dfield"><label>Splatnost</label><span>'+fmtDate(f.splatnost)+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'—')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'—')+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(f.createdBy||'—')+'</span></div></div><div class="dfield full"><label>Položky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(f.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFvStav(\''+f.id+'\',this.value)"><option value="vystavená"'+(f.stav==='vystavená'?' selected':'')+'>Vystavená</option><option value="odeslaná"'+(f.stav==='odeslaná'?' selected':'')+'>Odeslaná</option><option value="zaplacená"'+(f.stav==='zaplacená'?' selected':'')+'>Zaplacená</option><option value="stornovaná"'+(f.stav==='stornovaná'?' selected':'')+'>Stornovaná</option></select><button class="btn-action btn-edit" onclick="openFvModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-del" onclick="deleteFv(\''+f.id+'\')">Smazat</button></div>';
+  var ov=isOverdue(f),st=ov?'Po splatnosti':(f.stav||'vystaven\u00e1'),sc=stCls(ov?'po splatnosti':f.stav);
+  var ph=f.polozky&&f.polozky.length?'<table class="pol-table"><thead><tr><th>N\u00e1zev</th><th>Mno\u017e.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+f.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez polo\u017eek</span>';
+  document.getElementById('fv-detail').innerHTML='<div class="detail-header"><h2>'+f.cislo+'</h2><span class="stav-chip '+sc+'">'+st+'</span></div><div class="detail-grid"><div class="dfield"><label>Odb\u011bratel</label><span>'+(f.odberatel||'\u2014')+'</span></div><div class="dfield"><label>I\u010cO</label><span>'+(f.ico||'\u2014')+'</span></div><div class="dfield"><label>DI\u010c</label><span>'+(f.dic||'\u2014')+'</span></div><div class="dfield"><label>Adresa</label><span>'+(f.adresa||'\u2014')+'</span></div><div class="dfield"><label>Datum vystaven\u00ed</label><span>'+fmtDate(f.datumVystaveni)+'</span></div><div class="dfield"><label>DUZP</label><span>'+fmtDate(f.duzp)+'</span></div><div class="dfield"><label>Splatnost</label><span>'+fmtDate(f.splatnost)+'</span></div><div class="dfield"><label>Bez DPH</label><span>'+fmtMoney(f.castkaBezDph)+'</span></div><div class="dfield"><label>DPH</label><span>'+(f.dphSazba||21)+' %</span></div><div class="dfield"><label>S DPH</label><span class="amount-big">'+fmtMoney(f.castka)+'</span></div><div class="dfield"><label>Platba</label><span>'+(f.platba||'\u2014')+'</span></div><div class="dfield"><label>VS</label><span>'+(f.vs||'\u2014')+'</span></div></div><div class="dfield full"><label>Polo\u017eky</label>'+ph+'</div><div class="dfield full"><label>Pozn\u00e1mka</label><p>'+(f.poznamka||'\u2014')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeFvStav(\''+f.id+'\',this.value)"><option value="vystaven\u00e1"'+(f.stav==='vystaven\u00e1'?' selected':'')+'>Vystaven\u00e1</option><option value="odeslan\u00e1"'+(f.stav==='odeslan\u00e1'?' selected':'')+'>Odeslan\u00e1</option><option value="zaplacen\u00e1"'+(f.stav==='zaplacen\u00e1'?' selected':'')+'>Zaplacen\u00e1</option><option value="stornovan\u00e1"'+(f.stav==='stornovan\u00e1'?' selected':'')+'>Stornovan\u00e1</option></select><button class="btn-action btn-edit" onclick="openFvModal(\''+f.id+'\')">Upravit</button><button class="btn-action btn-print" onclick="printFaktura(\'fv\',\''+f.id+'\')">Tisk / PDF</button><button class="btn-action btn-del" onclick="deleteFv(\''+f.id+'\')">Smazat</button></div>';
 }
-function changeFvStav(id,s){var f=_fakturyVydane.find(function(x){return x.id===id});if(f){f.stav=s;renderFakturyVydane();renderDashboard()}}
-function deleteFv(id){if(!confirm('Smazat vydanou fakturu?'))return;_fakturyVydane=_fakturyVydane.filter(function(x){return x.id!==id});_selFv=null;document.getElementById('fv-detail').innerHTML='<div class="empty-msg">Vyberte vydanou fakturu</div>';renderFakturyVydane();renderDashboard()}
+function changeFvStav(id,s){var f=_fakturyVydane.find(function(x){return x.id===id});if(f){f.stav=s;if(_apiMode)apiPut('/api/faktury/'+id,{stav:s});renderFakturyVydane();renderDashboard()}}
+function deleteFv(id){if(!confirm('Smazat vydanou fakturu?'))return;_fakturyVydane=_fakturyVydane.filter(function(x){return x.id!==id});if(_apiMode)apiDel('/api/faktury/'+id);_selFv=null;document.getElementById('fv-detail').innerHTML='<div class="empty-msg">Vyberte vydanou fakturu</div>';renderFakturyVydane();renderDashboard()}
 
+/* ===== MODALS: OBJ, FP, FV ===== */
 var _editPolozky=[];
 function openObjModal(eid){
   var o=eid?_objednavky.find(function(x){return x.id===eid}):null;
-  document.getElementById('obj-modal-title').textContent=o?'Upravit objednávku':'Nová objednávka';
+  document.getElementById('obj-modal-title').textContent=o?'Upravit objedn\u00e1vku':'Nov\u00e1 objedn\u00e1vka';
   document.getElementById('obj-edit-id').value=eid||'';
   document.getElementById('obj-cislo').value=o?o.cislo:genCislo('OBJ');
   document.getElementById('obj-zakaznik').value=o?o.zakaznik:'';
@@ -462,10 +663,9 @@ function openObjModal(eid){
   renderEditPolozky('obj');
   document.getElementById('obj-modal').style.display='flex';
 }
-/* ===== MODAL: Faktura přijatá ===== */
 function openFpModal(eid){
   var f=eid?_fakturyPrijate.find(function(x){return x.id===eid}):null;
-  document.getElementById('fp-modal-title').textContent=f?'Upravit přijatou fakturu':'Nová faktura přijatá';
+  document.getElementById('fp-modal-title').textContent=f?'Upravit p\u0159ijatou fakturu':'Nov\u00e1 faktura p\u0159ijat\u00e1';
   document.getElementById('fp-edit-id').value=eid||'';
   document.getElementById('fp-cislo').value=f?f.cislo:genCislo('FP');
   document.getElementById('fp-dodavatel').value=f?f.dodavatel:'';
@@ -477,7 +677,7 @@ function openFpModal(eid){
   document.getElementById('fp-castka-bez').value=f?f.castkaBezDph:'';
   document.getElementById('fp-dph').value=f?f.dphSazba:21;
   document.getElementById('fp-vs').value=f?f.vs:'';
-  document.getElementById('fp-platba').value=f?f.platba:'převodem';
+  document.getElementById('fp-platba').value=f?f.platba:'p\u0159evodem';
   document.getElementById('fp-splatnost').value=f&&f.splatnost?toIDate(f.splatnost):defSplat();
   document.getElementById('fp-poznamka').value=f?f.poznamka:'';
   document.getElementById('fp-obj-id').value=f&&f.objednavkaId?f.objednavkaId:'';
@@ -489,14 +689,12 @@ function recalcFp(){var s=_editPolozky.reduce(function(a,p){return a+(p.mnozstvi
 function saveFp(e){
   e.preventDefault();var id=document.getElementById('fp-edit-id').value,bz=Number(document.getElementById('fp-castka-bez').value)||0,dph=Number(document.getElementById('fp-dph').value)||21;
   var data={cislo:document.getElementById('fp-cislo').value,dodavatel:document.getElementById('fp-dodavatel').value,ico:document.getElementById('fp-ico').value,dic:document.getElementById('fp-dic').value,adresa:document.getElementById('fp-adresa').value,datumPrijeti:document.getElementById('fp-datum-prijeti').value?new Date(document.getElementById('fp-datum-prijeti').value):new Date(),duzp:document.getElementById('fp-duzp').value?new Date(document.getElementById('fp-duzp').value):null,castkaBezDph:bz,dphSazba:dph,castka:Math.round(bz*(1+dph/100)),vs:document.getElementById('fp-vs').value,platba:document.getElementById('fp-platba').value,splatnost:document.getElementById('fp-splatnost').value?new Date(document.getElementById('fp-splatnost').value):null,poznamka:document.getElementById('fp-poznamka').value,polozky:_editPolozky.filter(function(p){return p.nazev}),objednavkaId:document.getElementById('fp-obj-id').value||null};
-  if(id){var f=_fakturyPrijate.find(function(x){return x.id===id});if(f)Object.assign(f,data)}else{data.id=gid();data.stav='nová';data.createdAt=new Date();data.createdBy='Progresklima';_fakturyPrijate.unshift(data)}
+  if(id){var f=_fakturyPrijate.find(function(x){return x.id===id});if(f){Object.assign(f,data);if(_apiMode)apiPut('/api/faktury/'+id,data)}}else{data.id=gid();data.stav='nov\u00e1';data.createdAt=new Date();data.createdBy='Progresklima';_fakturyPrijate.unshift(data);if(_apiMode)apiPost('/api/faktury',data)}
   document.getElementById('fp-modal').style.display='none';renderFakturyPrijate();renderDashboard();
 }
-
-/* ===== MODAL: Faktura vydaná ===== */
 function openFvModal(eid){
   var f=eid?_fakturyVydane.find(function(x){return x.id===eid}):null;
-  document.getElementById('fv-modal-title').textContent=f?'Upravit vydanou fakturu':'Nová faktura vydaná';
+  document.getElementById('fv-modal-title').textContent=f?'Upravit vydanou fakturu':'Nov\u00e1 faktura vydan\u00e1';
   document.getElementById('fv-edit-id').value=eid||'';
   document.getElementById('fv-cislo').value=f?f.cislo:genCislo('FV');
   document.getElementById('fv-odberatel').value=f?f.odberatel:'';
@@ -508,7 +706,7 @@ function openFvModal(eid){
   document.getElementById('fv-castka-bez').value=f?f.castkaBezDph:'';
   document.getElementById('fv-dph').value=f?f.dphSazba:21;
   document.getElementById('fv-vs').value=f?f.vs:'';
-  document.getElementById('fv-platba').value=f?f.platba:'převodem';
+  document.getElementById('fv-platba').value=f?f.platba:'p\u0159evodem';
   document.getElementById('fv-splatnost').value=f&&f.splatnost?toIDate(f.splatnost):defSplat();
   document.getElementById('fv-poznamka').value=f?f.poznamka:'';
   document.getElementById('fv-obj-id').value=f&&f.zakazkaId?f.zakazkaId:'';
@@ -520,22 +718,21 @@ function recalcFv(){var s=_editPolozky.reduce(function(a,p){return a+(p.mnozstvi
 function saveFv(e){
   e.preventDefault();var id=document.getElementById('fv-edit-id').value,bz=Number(document.getElementById('fv-castka-bez').value)||0,dph=Number(document.getElementById('fv-dph').value)||21;
   var data={cislo:document.getElementById('fv-cislo').value,odberatel:document.getElementById('fv-odberatel').value,ico:document.getElementById('fv-ico').value,dic:document.getElementById('fv-dic').value,adresa:document.getElementById('fv-adresa').value,datumVystaveni:document.getElementById('fv-datum-vystaveni').value?new Date(document.getElementById('fv-datum-vystaveni').value):new Date(),duzp:document.getElementById('fv-duzp').value?new Date(document.getElementById('fv-duzp').value):null,castkaBezDph:bz,dphSazba:dph,castka:Math.round(bz*(1+dph/100)),vs:document.getElementById('fv-vs').value,platba:document.getElementById('fv-platba').value,splatnost:document.getElementById('fv-splatnost').value?new Date(document.getElementById('fv-splatnost').value):null,poznamka:document.getElementById('fv-poznamka').value,polozky:_editPolozky.filter(function(p){return p.nazev}),zakazkaId:document.getElementById('fv-obj-id').value||null};
-  if(id){var f=_fakturyVydane.find(function(x){return x.id===id});if(f)Object.assign(f,data)}else{data.id=gid();data.stav='vystavená';data.createdAt=new Date();data.createdBy='Progresklima';_fakturyVydane.unshift(data)}
+  if(id){var f=_fakturyVydane.find(function(x){return x.id===id});if(f){Object.assign(f,data);if(_apiMode)apiPut('/api/faktury/'+id,data)}}else{data.id=gid();data.stav='vystaven\u00e1';data.createdAt=new Date();data.createdBy='Progresklima';_fakturyVydane.unshift(data);if(_apiMode)apiPost('/api/faktury',data)}
   document.getElementById('fv-modal').style.display='none';renderFakturyVydane();renderDashboard();
 }
 function renderEditPolozky(pfx){
   var recalcCall=pfx==='fp'?'recalcFp()':pfx==='fv'?'recalcFv()':'';
-  document.getElementById(pfx+'-polozky-list').innerHTML=_editPolozky.map(function(p,i){return'<div class="pol-row"><input type="text" placeholder="Název" value="'+(p.nazev||'')+'" onchange="_editPolozky['+i+'].nazev=this.value"><input type="number" placeholder="Množ." value="'+(p.mnozstvi||1)+'" min="1" style="width:70px" onchange="_editPolozky['+i+'].mnozstvi=Number(this.value);'+recalcCall+'"><input type="number" placeholder="Cena" value="'+(p.cena||0)+'" style="width:100px" onchange="_editPolozky['+i+'].cena=Number(this.value);'+recalcCall+'"><button type="button" class="btn-pol-del" onclick="_editPolozky.splice('+i+',1);renderEditPolozky(\''+pfx+'\');'+recalcCall+'">×</button></div>'}).join('');
+  document.getElementById(pfx+'-polozky-list').innerHTML=_editPolozky.map(function(p,i){return'<div class="pol-row"><input type="text" placeholder="N\u00e1zev" value="'+(p.nazev||'')+'" onchange="_editPolozky['+i+'].nazev=this.value"><input type="number" placeholder="Mno\u017e." value="'+(p.mnozstvi||1)+'" min="1" style="width:70px" onchange="_editPolozky['+i+'].mnozstvi=Number(this.value);'+recalcCall+'"><input type="number" placeholder="Cena" value="'+(p.cena||0)+'" style="width:100px" onchange="_editPolozky['+i+'].cena=Number(this.value);'+recalcCall+'"><button type="button" class="btn-pol-del" onclick="_editPolozky.splice('+i+',1);renderEditPolozky(\''+pfx+'\');'+recalcCall+'">\u00d7</button></div>'}).join('');
 }
 function addPolozka(pfx){_editPolozky.push({nazev:'',mnozstvi:1,cena:0});renderEditPolozky(pfx)}
 function saveObj(e){
   e.preventDefault();var id=document.getElementById('obj-edit-id').value;
   var data={cislo:document.getElementById('obj-cislo').value,zakaznik:document.getElementById('obj-zakaznik').value,kontakt:document.getElementById('obj-kontakt').value,popis:document.getElementById('obj-popis').value,castka:Number(document.getElementById('obj-castka').value)||0,termin:document.getElementById('obj-termin').value?new Date(document.getElementById('obj-termin').value):null,poznamka:document.getElementById('obj-poznamka').value,polozky:_editPolozky.filter(function(p){return p.nazev})};
-  if(id){var o=_objednavky.find(function(x){return x.id===id});if(o)Object.assign(o,data)}else{data.id=gid();data.stav='nová';data.createdAt=new Date();data.createdBy='Progresklima';_objednavky.unshift(data)}
+  if(id){var o=_objednavky.find(function(x){return x.id===id});if(o){Object.assign(o,data);if(_apiMode)apiPut('/api/objednavky/'+id,data)}}else{data.id=gid();data.stav='nov\u00e1';data.createdAt=new Date();data.createdBy='Progresklima';_objednavky.unshift(data);if(_apiMode)apiPost('/api/objednavky',data)}
   document.getElementById('obj-modal').style.display='none';renderObjednavky();renderDashboard();
 }
 function createFakturaFromObj(oid){var o=_objednavky.find(function(x){return x.id===oid});if(!o)return;switchTab('faktury-vydane');openFvModal();document.getElementById('fv-odberatel').value=o.zakaznik||'';document.getElementById('fv-castka-bez').value=o.castka||'';document.getElementById('fv-obj-id').value=oid;_editPolozky=o.polozky?o.polozky.map(function(p){return{nazev:p.nazev,mnozstvi:p.mnozstvi,cena:p.cena}}):[];renderEditPolozky('fv');recalcFv()}
-function closeModal(id){document.getElementById(id).style.display='none'}
 
 /* ===== PRIJEMKY ===== */
 var _selPri=null;
@@ -543,26 +740,175 @@ function renderPrijemky(){
   var f=(document.getElementById('pri-filter').value||'').toLowerCase(),sf=document.getElementById('pri-stav-filter').value,list=_prijemky;
   if(f)list=list.filter(function(p){return(p.cislo||'').toLowerCase().indexOf(f)>=0||(p.zakaznik||'').toLowerCase().indexOf(f)>=0});
   if(sf)list=list.filter(function(p){return p.stav===sf});
-  document.getElementById('pri-list').innerHTML=list.length===0?'<div class="empty-msg">Žádné příjemky</div>':list.map(function(p){
+  document.getElementById('pri-list').innerHTML=list.length===0?'<div class="empty-msg">\u017d\u00e1dn\u00e9 p\u0159\u00edjemky</div>':list.map(function(p){
     var allOk=p.polozky&&p.polozky.every(function(x){return x.mnozstviPrijato>=x.mnozstviObj});
-    return'<div class="item-card '+(_selPri===p.id?'active':'')+' '+(allOk?'':'overdue')+'" onclick="selectPri(\''+p.id+'\')"><div class="item-head"><span class="item-num">'+p.cislo+'</span><span class="stav-chip '+stCls(p.stav)+'">'+(p.stav||'nová')+'</span></div><div class="item-sub">'+(p.zakaznik||'—')+'</div><div class="item-meta">'+fmtDate(p.datumPrijmu)+(allOk?' · Kompletní':' · Nekompletní')+'</div></div>'}).join('');
+    return'<div class="item-card '+(_selPri===p.id?'active':'')+' '+(allOk?'':'overdue')+'" onclick="selectPri(\''+p.id+'\')"><div class="item-head"><span class="item-num">'+p.cislo+'</span><span class="stav-chip '+stCls(p.stav)+'">'+(p.stav||'nov\u00e1')+'</span></div><div class="item-sub">'+(p.zakaznik||'\u2014')+'</div><div class="item-meta">'+fmtDate(p.datumPrijmu)+(allOk?' \u00b7 Kompletn\u00ed':' \u00b7 Nekompletn\u00ed')+'</div></div>'}).join('');
   if(_selPri)showPriDetail(_selPri);
 }
 function selectPri(id){_selPri=id;renderPrijemky()}
 function showPriDetail(id){
-  var p=_prijemky.find(function(x){return x.id===id});if(!p){document.getElementById('pri-detail').innerHTML='<div class="empty-msg">Vyberte příjemku</div>';return}
-  var ph=p.polozky&&p.polozky.length?'<table class="pol-table"><thead><tr><th>Název</th><th>Obj.</th><th>Přijato</th><th>Cena</th><th>Stav</th></tr></thead><tbody>'+p.polozky.map(function(x,i){
+  var p=_prijemky.find(function(x){return x.id===id});if(!p){document.getElementById('pri-detail').innerHTML='<div class="empty-msg">Vyberte p\u0159\u00edjemku</div>';return}
+  var ph=p.polozky&&p.polozky.length?'<table class="pol-table"><thead><tr><th>N\u00e1zev</th><th>Obj.</th><th>P\u0159ijato</th><th>Cena</th><th>Stav</th></tr></thead><tbody>'+p.polozky.map(function(x,i){
     var ok=x.mnozstviPrijato>=x.mnozstviObj;
-    return'<tr><td>'+x.nazev+'</td><td>'+x.mnozstviObj+'</td><td><div class="prijemka-check"><input type="number" value="'+x.mnozstviPrijato+'" min="0" onchange="updatePriPol(\''+p.id+'\','+i+',this.value)"></div></td><td>'+fmtMoney(x.cena)+'</td><td><span class="'+(ok?'prijemka-ok':'prijemka-diff')+'">'+(ok?'OK':'Rozdíl: '+(x.mnozstviPrijato-x.mnozstviObj))+'</span></td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez položek</span>';
-  document.getElementById('pri-detail').innerHTML='<div class="detail-header"><h2>'+p.cislo+'</h2><span class="stav-chip '+stCls(p.stav)+'">'+(p.stav||'nová')+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(p.zakaznik||'—')+'</span></div><div class="dfield"><label>Datum příjmu</label><span>'+fmtDate(p.datumPrijmu)+'</span></div><div class="dfield"><label>Objednávka</label><span>'+(function(){var o=_objednavky.find(function(x){return x.id===p.objednavkaId});return o?o.cislo:'—'})()+'</span></div><div class="dfield"><label>Vytvořil</label><span>'+(p.createdBy||'—')+'</span></div></div><div class="dfield full"><label>Položky — kontrola dodávky</label>'+ph+'</div><div class="dfield full"><label>Poznámka</label><p>'+(p.poznamka||'—')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changePriStav(\''+p.id+'\',this.value)"><option value="nová"'+(p.stav==='nová'?' selected':'')+'>Nová</option><option value="zkontrolováno"'+(p.stav==='zkontrolováno'?' selected':'')+'>Zkontrolováno</option><option value="naskladněno"'+(p.stav==='naskladněno'?' selected':'')+'>Naskladněno</option></select><button class="btn-action btn-del" onclick="deletePri(\''+p.id+'\')">Smazat</button></div>';
+    return'<tr><td>'+x.nazev+'</td><td>'+x.mnozstviObj+'</td><td><div class="prijemka-check"><input type="number" value="'+x.mnozstviPrijato+'" min="0" onchange="updatePriPol(\''+p.id+'\','+i+',this.value)"></div></td><td>'+fmtMoney(x.cena)+'</td><td><span class="'+(ok?'prijemka-ok':'prijemka-diff')+'">'+(ok?'OK':'Rozd\u00edl: '+(x.mnozstviPrijato-x.mnozstviObj))+'</span></td></tr>'}).join('')+'</tbody></table>':'<span style="color:var(--muted)">Bez polo\u017eek</span>';
+  var objLink=p.objednavkaId?(function(){var o=_objednavky.find(function(x){return x.id===p.objednavkaId});return o?o.cislo:'\u2014'})():'\u2014';
+  document.getElementById('pri-detail').innerHTML='<div class="detail-header"><h2>'+p.cislo+'</h2><span class="stav-chip '+stCls(p.stav)+'">'+(p.stav||'nov\u00e1')+'</span></div><div class="detail-grid"><div class="dfield"><label>Dodavatel</label><span>'+(p.zakaznik||'\u2014')+'</span></div><div class="dfield"><label>Datum p\u0159\u00edjmu</label><span>'+fmtDate(p.datumPrijmu)+'</span></div><div class="dfield"><label>Objedn\u00e1vka</label><span>'+objLink+'</span></div><div class="dfield"><label>Vytvo\u0159il</label><span>'+(p.createdBy||'\u2014')+'</span></div></div><div class="dfield full"><label>Polo\u017eky \u2014 kontrola dod\u00e1vky</label>'+ph+'</div><div class="dfield full"><label>Pozn\u00e1mka</label><p>'+(p.poznamka||'\u2014')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changePriStav(\''+p.id+'\',this.value)"><option value="nov\u00e1"'+(p.stav==='nov\u00e1'?' selected':'')+'>Nov\u00e1</option><option value="zkontrolov\u00e1no"'+(p.stav==='zkontrolov\u00e1no'?' selected':'')+'>Zkontrolov\u00e1no</option><option value="naskladn\u011bno"'+(p.stav==='naskladn\u011bno'?' selected':'')+'>Naskladn\u011bno</option></select><button class="btn-action btn-print" onclick="printPrijemka(\''+p.id+'\')">Tisk</button><button class="btn-action btn-del" onclick="deletePri(\''+p.id+'\')">Smazat</button></div>';
 }
 function updatePriPol(pid,idx,val){var p=_prijemky.find(function(x){return x.id===pid});if(p&&p.polozky[idx])p.polozky[idx].mnozstviPrijato=Number(val);showPriDetail(pid);renderPrijemky()}
-function changePriStav(id,s){var p=_prijemky.find(function(x){return x.id===id});if(p){p.stav=s;renderPrijemky();renderDashboard()}}
-function deletePri(id){if(!confirm('Smazat příjemku?'))return;_prijemky=_prijemky.filter(function(x){return x.id!==id});_selPri=null;document.getElementById('pri-detail').innerHTML='<div class="empty-msg">Vyberte příjemku</div>';renderPrijemky();renderDashboard()}
+function changePriStav(id,s){var p=_prijemky.find(function(x){return x.id===id});if(p){p.stav=s;if(_apiMode)apiPut('/api/prijemky/'+id,{stav:s});renderPrijemky();renderDashboard()}}
+function deletePri(id){if(!confirm('Smazat p\u0159\u00edjemku?'))return;_prijemky=_prijemky.filter(function(x){return x.id!==id});if(_apiMode)apiDel('/api/prijemky/'+id);_selPri=null;document.getElementById('pri-detail').innerHTML='<div class="empty-msg">Vyberte p\u0159\u00edjemku</div>';renderPrijemky();renderDashboard()}
 function createPrijemkaFromObj(oid){
   var o=_objednavky.find(function(x){return x.id===oid});if(!o)return;
-  var pri={id:gid(),cislo:genCislo('PRI'),objednavkaId:oid,zakaznik:o.zakaznik,datumPrijmu:new Date(),stav:'nová',createdAt:new Date(),createdBy:'Progresklima',polozky:o.polozky?o.polozky.map(function(p){return{nazev:p.nazev,mnozstviObj:p.mnozstvi,mnozstviPrijato:p.mnozstvi,cena:p.cena}}):[],poznamka:'Příjemka z objednávky '+o.cislo};
-  _prijemky.unshift(pri);switchTab('prijemky');_selPri=pri.id;renderPrijemky();renderDashboard();
+  var pri={id:gid(),cislo:genCislo('PRI'),objednavkaId:oid,zakaznik:o.zakaznik,datumPrijmu:new Date(),stav:'nov\u00e1',createdAt:new Date(),createdBy:'Progresklima',polozky:o.polozky?o.polozky.map(function(p){return{nazev:p.nazev,mnozstviObj:p.mnozstvi,mnozstviPrijato:p.mnozstvi,cena:p.cena}}):[],poznamka:'P\u0159\u00edjemka z objedn\u00e1vky '+o.cislo};
+  _prijemky.unshift(pri);if(_apiMode)apiPost('/api/prijemky',pri);switchTab('prijemky');_selPri=pri.id;renderPrijemky();renderDashboard();
+}
+
+/* ===== VYDEJKY ===== */
+var _selVyd=null;
+function renderVydejky(){
+  var f=(document.getElementById('vyd-filter').value||'').toLowerCase(),sf=document.getElementById('vyd-stav-filter').value,list=_vydejky;
+  if(f)list=list.filter(function(v){return(v.cislo||'').toLowerCase().indexOf(f)>=0||(v.zakaznik||'').toLowerCase().indexOf(f)>=0});
+  if(sf)list=list.filter(function(v){return v.stav===sf});
+  document.getElementById('vyd-list').innerHTML=list.length===0?'<div class="empty-msg">\u017d\u00e1dn\u00e9 v\u00fddejky</div>':list.map(function(v){
+    var total=v.polozky?v.polozky.reduce(function(s,p){return s+(p.mnozstvi||0)*(p.cena||0)},0):0;
+    return'<div class="item-card '+(_selVyd===v.id?'active':'')+'" onclick="selectVyd(\''+v.id+'\')"><div class="item-head"><span class="item-num">'+v.cislo+'</span><span class="stav-chip '+stCls(v.stav)+'">'+(v.stav||'nov\u00e1')+'</span></div><div class="item-sub">'+(v.zakaznik||'\u2014')+'</div><div class="item-meta">'+fmtDate(v.datumVydeje)+' \u00b7 '+fmtMoney(total)+'</div></div>'}).join('');
+  if(_selVyd)showVydDetail(_selVyd);
+}
+function selectVyd(id){_selVyd=id;renderVydejky()}
+function showVydDetail(id){
+  var v=_vydejky.find(function(x){return x.id===id});if(!v){document.getElementById('vyd-detail').innerHTML='<div class="empty-msg">Vyberte v\u00fddejku</div>';return}
+  var total=v.polozky?v.polozky.reduce(function(s,p){return s+(p.mnozstvi||0)*(p.cena||0)},0):0;
+  var ph=v.polozky&&v.polozky.length?'<table class="pol-table"><thead><tr><th>N\u00e1zev</th><th>Mno\u017e.</th><th>Cena</th><th>Celkem</th></tr></thead><tbody>'+v.polozky.map(function(p){return'<tr><td>'+p.nazev+'</td><td>'+p.mnozstvi+'</td><td>'+fmtMoney(p.cena)+'</td><td>'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>'}).join('')+'<tr style="font-weight:700;background:var(--bg)"><td colspan="3" style="text-align:right">Celkem:</td><td>'+fmtMoney(total)+'</td></tr></tbody></table>':'<span style="color:var(--muted)">Bez polo\u017eek</span>';
+  var objLink=v.objednavkaId?(function(){var o=_objednavky.find(function(x){return x.id===v.objednavkaId});return o?o.cislo:'\u2014'})():'\u2014';
+  document.getElementById('vyd-detail').innerHTML='<div class="detail-header"><h2>'+v.cislo+'</h2><span class="stav-chip '+stCls(v.stav)+'">'+(v.stav||'nov\u00e1')+'</span></div><div class="detail-grid"><div class="dfield"><label>Odb\u011bratel / Z\u00e1kazn\u00edk</label><span>'+(v.zakaznik||'\u2014')+'</span></div><div class="dfield"><label>Datum v\u00fddeje</label><span>'+fmtDate(v.datumVydeje)+'</span></div><div class="dfield"><label>Objedn\u00e1vka</label><span>'+objLink+'</span></div><div class="dfield"><label>Vytvo\u0159il</label><span>'+(v.createdBy||'\u2014')+'</span></div></div><div class="dfield full"><label>Polo\u017eky</label>'+ph+'</div><div class="dfield full"><label>Pozn\u00e1mka</label><p>'+(v.poznamka||'\u2014')+'</p></div><div class="detail-actions"><select class="stav-sel" onchange="changeVydStav(\''+v.id+'\',this.value)"><option value="nov\u00e1"'+(v.stav==='nov\u00e1'?' selected':'')+'>Nov\u00e1</option><option value="p\u0159ipraven\u00e1"'+(v.stav==='p\u0159ipraven\u00e1'?' selected':'')+'>P\u0159ipraven\u00e1</option><option value="vyd\u00e1no"'+(v.stav==='vyd\u00e1no'?' selected':'')+'>Vyd\u00e1no</option><option value="zru\u0161en\u00e1"'+(v.stav==='zru\u0161en\u00e1'?' selected':'')+'>Zru\u0161en\u00e1</option></select><button class="btn-action btn-edit" onclick="openVydModal(\''+v.id+'\')">Upravit</button><button class="btn-action btn-print" onclick="printVydejka(\''+v.id+'\')">Tisk</button><button class="btn-action btn-del" onclick="deleteVyd(\''+v.id+'\')">Smazat</button></div>';
+}
+function changeVydStav(id,s){var v=_vydejky.find(function(x){return x.id===id});if(v){v.stav=s;if(_apiMode)apiPut('/api/vydejky/'+id,{stav:s});renderVydejky();renderDashboard()}}
+function deleteVyd(id){if(!confirm('Smazat v\u00fddejku?'))return;_vydejky=_vydejky.filter(function(x){return x.id!==id});if(_apiMode)apiDel('/api/vydejky/'+id);_selVyd=null;document.getElementById('vyd-detail').innerHTML='<div class="empty-msg">Vyberte v\u00fddejku</div>';renderVydejky();renderDashboard()}
+function openVydModal(eid){
+  var v=eid?_vydejky.find(function(x){return x.id===eid}):null;
+  document.getElementById('vyd-modal-title').textContent=v?'Upravit v\u00fddejku':'Nov\u00e1 v\u00fddejka';
+  document.getElementById('vyd-edit-id').value=eid||'';
+  document.getElementById('vyd-cislo').value=v?v.cislo:genCislo('VYD');
+  document.getElementById('vyd-zakaznik').value=v?v.zakaznik:'';
+  document.getElementById('vyd-datum').value=v&&v.datumVydeje?toIDate(v.datumVydeje):toIDate(new Date());
+  document.getElementById('vyd-poznamka').value=v?v.poznamka:'';
+  // Populate obj select
+  var sel=document.getElementById('vyd-obj-id');
+  sel.innerHTML='<option value="">\u2014 \u017e\u00e1dn\u00e1 \u2014</option>'+_objednavky.map(function(o){return'<option value="'+o.id+'"'+(v&&v.objednavkaId===o.id?' selected':'')+'>'+o.cislo+' - '+o.zakaznik+'</option>'}).join('');
+  _editPolozky=v&&v.polozky?v.polozky.map(function(p){return{nazev:p.nazev,mnozstvi:p.mnozstvi,cena:p.cena}}):[];
+  renderEditPolozky('vyd');
+  document.getElementById('vyd-modal').style.display='flex';
+}
+function saveVyd(e){
+  e.preventDefault();var id=document.getElementById('vyd-edit-id').value;
+  var data={cislo:document.getElementById('vyd-cislo').value,zakaznik:document.getElementById('vyd-zakaznik').value,datumVydeje:document.getElementById('vyd-datum').value?new Date(document.getElementById('vyd-datum').value):new Date(),objednavkaId:document.getElementById('vyd-obj-id').value||null,poznamka:document.getElementById('vyd-poznamka').value,polozky:_editPolozky.filter(function(p){return p.nazev})};
+  if(id){var v=_vydejky.find(function(x){return x.id===id});if(v){Object.assign(v,data);if(_apiMode)apiPut('/api/vydejky/'+id,data)}}else{data.id=gid();data.stav='nov\u00e1';data.createdAt=new Date();data.createdBy='Progresklima';_vydejky.unshift(data);if(_apiMode)apiPost('/api/vydejky',data)}
+  document.getElementById('vyd-modal').style.display='none';renderVydejky();renderDashboard();
+}
+function createVydejkaFromObj(oid){
+  var o=_objednavky.find(function(x){return x.id===oid});if(!o)return;
+  switchTab('vydejky');openVydModal();
+  document.getElementById('vyd-zakaznik').value=o.zakaznik||'';
+  document.getElementById('vyd-obj-id').value=oid;
+  _editPolozky=o.polozky?o.polozky.map(function(p){return{nazev:p.nazev,mnozstvi:p.mnozstvi,cena:p.cena}}):[];
+  renderEditPolozky('vyd');
+}
+
+/* ===== PRINT / PDF ===== */
+function printFaktura(typ, id) {
+  var f = typ === 'fp' ? _fakturyPrijate.find(function(x){return x.id===id}) : _fakturyVydane.find(function(x){return x.id===id});
+  if (!f) return;
+  var isFp = typ === 'fp';
+  var partner = isFp ? (f.dodavatel||'') : (f.odberatel||'');
+  var partnerLabel = isFp ? 'Dodavatel' : 'Odb\u011bratel';
+  var polozkyHtml = '';
+  if (f.polozky && f.polozky.length) {
+    polozkyHtml = '<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:12px"><thead><tr style="background:#0a3d8f;color:#fff"><th style="padding:8px;text-align:left">Polo\u017eka</th><th style="padding:8px;text-align:right">Mno\u017estv\u00ed</th><th style="padding:8px;text-align:right">Cena/ks</th><th style="padding:8px;text-align:right">Celkem</th></tr></thead><tbody>';
+    f.polozky.forEach(function(p) {
+      polozkyHtml += '<tr style="border-bottom:1px solid #ddd"><td style="padding:6px 8px">'+p.nazev+'</td><td style="padding:6px 8px;text-align:right">'+p.mnozstvi+'</td><td style="padding:6px 8px;text-align:right">'+fmtMoney(p.cena)+'</td><td style="padding:6px 8px;text-align:right">'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>';
+    });
+    polozkyHtml += '</tbody></table>';
+  }
+
+  var html = '<div style="font-family:DM Sans,Arial,sans-serif;max-width:800px;margin:0 auto;padding:40px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px">';
+  html += '<div><h1 style="font-size:24px;color:#0a3d8f;margin:0">'+f.cislo+'</h1><p style="color:#666;font-size:13px;margin-top:4px">'+(isFp?'Faktura p\u0159ijat\u00e1':'Faktura vydan\u00e1')+'</p></div>';
+  html += '<div style="text-align:right"><strong style="font-size:16px;color:#0a3d8f">AC EURO servis s.r.o.</strong><br><span style="font-size:12px;color:#666">Progresklima</span></div>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">';
+  html += '<div style="background:#f5f8fc;padding:16px;border-radius:8px"><h3 style="font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px">'+partnerLabel+'</h3><strong>'+partner+'</strong>';
+  if(f.ico) html += '<br>I\u010cO: '+f.ico;
+  if(f.dic) html += '<br>DI\u010c: '+f.dic;
+  if(f.adresa) html += '<br>'+f.adresa;
+  html += '</div>';
+  html += '<div style="background:#f5f8fc;padding:16px;border-radius:8px"><h3 style="font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px">\u00dadaje dokladu</h3>';
+  html += '<strong>VS:</strong> '+(f.vs||'\u2014')+'<br>';
+  html += '<strong>Datum:</strong> '+fmtDate(isFp?f.datumPrijeti:f.datumVystaveni)+'<br>';
+  html += '<strong>DUZP:</strong> '+fmtDate(f.duzp)+'<br>';
+  html += '<strong>Splatnost:</strong> '+fmtDate(f.splatnost)+'<br>';
+  html += '<strong>Platba:</strong> '+(f.platba||'p\u0159evodem');
+  html += '</div></div>';
+
+  html += polozkyHtml;
+
+  html += '<div style="margin-top:20px;text-align:right;padding:16px;background:#f0f7e6;border-radius:8px">';
+  html += '<div style="font-size:12px;color:#666">Bez DPH: <strong>'+fmtMoney(f.castkaBezDph)+'</strong></div>';
+  html += '<div style="font-size:12px;color:#666">DPH '+(f.dphSazba||21)+'%: <strong>'+fmtMoney((f.castka||0)-(f.castkaBezDph||0))+'</strong></div>';
+  html += '<div style="font-size:22px;font-weight:700;color:#2e7d32;margin-top:6px">Celkem: '+fmtMoney(f.castka)+'</div>';
+  html += '</div>';
+
+  if(f.poznamka) html += '<div style="margin-top:16px;padding:12px;background:#fff8e0;border-radius:6px;font-size:12px"><strong>Pozn\u00e1mka:</strong> '+f.poznamka+'</div>';
+  html += '</div>';
+
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write('<html><head><title>'+f.cislo+'</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"><style>@media print{body{margin:0}button{display:none!important}}</style></head><body>'+html+'<div style="text-align:center;margin-top:30px"><button onclick="window.print()" style="background:#0a3d8f;color:#fff;border:none;padding:12px 30px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Tisknout / Ulo\u017eit PDF</button></div></body></html>');
+  win.document.close();
+}
+
+function printPrijemka(id) {
+  var p = _prijemky.find(function(x){return x.id===id});
+  if (!p) return;
+  var html = '<div style="font-family:DM Sans,Arial,sans-serif;max-width:800px;margin:0 auto;padding:40px">';
+  html += '<h1 style="font-size:24px;color:#0a3d8f">P\u0159\u00edjemka '+p.cislo+'</h1>';
+  html += '<p>Dodavatel: <strong>'+(p.zakaznik||'\u2014')+'</strong> | Datum: <strong>'+fmtDate(p.datumPrijmu)+'</strong></p>';
+  if (p.polozky && p.polozky.length) {
+    html += '<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:12px"><thead><tr style="background:#0a3d8f;color:#fff"><th style="padding:8px">Polo\u017eka</th><th style="padding:8px;text-align:right">Obj.</th><th style="padding:8px;text-align:right">P\u0159ijato</th><th style="padding:8px;text-align:right">Stav</th></tr></thead><tbody>';
+    p.polozky.forEach(function(x) {
+      var ok = x.mnozstviPrijato >= x.mnozstviObj;
+      html += '<tr style="border-bottom:1px solid #ddd"><td style="padding:6px 8px">'+x.nazev+'</td><td style="padding:6px 8px;text-align:right">'+x.mnozstviObj+'</td><td style="padding:6px 8px;text-align:right">'+x.mnozstviPrijato+'</td><td style="padding:6px 8px;text-align:right;color:'+(ok?'green':'red')+'">'+(ok?'OK':'Rozd\u00edl: '+(x.mnozstviPrijato-x.mnozstviObj))+'</td></tr>';
+    });
+    html += '</tbody></table>';
+  }
+  if(p.poznamka) html += '<p style="margin-top:12px"><strong>Pozn\u00e1mka:</strong> '+p.poznamka+'</p>';
+  html += '<div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px"><div style="border-top:1px solid #999;padding-top:8px;text-align:center;font-size:11px">P\u0159edal</div><div style="border-top:1px solid #999;padding-top:8px;text-align:center;font-size:11px">P\u0159evzal</div></div>';
+  html += '</div>';
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write('<html><head><title>'+p.cislo+'</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"><style>@media print{button{display:none!important}}</style></head><body>'+html+'<div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="background:#0a3d8f;color:#fff;border:none;padding:12px 30px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Tisknout</button></div></body></html>');
+  win.document.close();
+}
+
+function printVydejka(id) {
+  var v = _vydejky.find(function(x){return x.id===id});
+  if (!v) return;
+  var total = v.polozky ? v.polozky.reduce(function(s,p){return s+(p.mnozstvi||0)*(p.cena||0)},0) : 0;
+  var html = '<div style="font-family:DM Sans,Arial,sans-serif;max-width:800px;margin:0 auto;padding:40px">';
+  html += '<h1 style="font-size:24px;color:#0a3d8f">V\u00fddejka '+v.cislo+'</h1>';
+  html += '<p>Odb\u011bratel: <strong>'+(v.zakaznik||'\u2014')+'</strong> | Datum: <strong>'+fmtDate(v.datumVydeje)+'</strong></p>';
+  if (v.polozky && v.polozky.length) {
+    html += '<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:12px"><thead><tr style="background:#0a3d8f;color:#fff"><th style="padding:8px">Polo\u017eka</th><th style="padding:8px;text-align:right">Mno\u017estv\u00ed</th><th style="padding:8px;text-align:right">Cena/ks</th><th style="padding:8px;text-align:right">Celkem</th></tr></thead><tbody>';
+    v.polozky.forEach(function(p) {
+      html += '<tr style="border-bottom:1px solid #ddd"><td style="padding:6px 8px">'+p.nazev+'</td><td style="padding:6px 8px;text-align:right">'+p.mnozstvi+'</td><td style="padding:6px 8px;text-align:right">'+fmtMoney(p.cena)+'</td><td style="padding:6px 8px;text-align:right">'+fmtMoney(p.mnozstvi*p.cena)+'</td></tr>';
+    });
+    html += '<tr style="font-weight:700;background:#f5f5f5"><td colspan="3" style="padding:8px;text-align:right">Celkem:</td><td style="padding:8px;text-align:right">'+fmtMoney(total)+'</td></tr>';
+    html += '</tbody></table>';
+  }
+  if(v.poznamka) html += '<p style="margin-top:12px"><strong>Pozn\u00e1mka:</strong> '+v.poznamka+'</p>';
+  html += '<div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px"><div style="border-top:1px solid #999;padding-top:8px;text-align:center;font-size:11px">Vydal</div><div style="border-top:1px solid #999;padding-top:8px;text-align:center;font-size:11px">P\u0159evzal</div></div>';
+  html += '</div>';
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write('<html><head><title>'+v.cislo+'</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet"><style>@media print{button{display:none!important}}</style></head><body>'+html+'<div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="background:#0a3d8f;color:#fff;border:none;padding:12px 30px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Tisknout</button></div></body></html>');
+  win.document.close();
 }
 
 /* ===== OCR ===== */
@@ -573,7 +919,7 @@ function openOcrModal(target){
   document.getElementById('ocr-result').style.display='none';
   document.getElementById('ocr-parsed').style.display='none';
   document.getElementById('ocr-file-input').value='';
-  document.getElementById('ocr-create-btn').textContent=target==='fp'?'Vytvořit přijatou fakturu':'Vytvořit objednávku';
+  document.getElementById('ocr-create-btn').textContent=target==='fp'?'Vytvo\u0159it p\u0159ijatou fakturu':'Vytvo\u0159it objedn\u00e1vku';
   _ocrPolozky=[];
   document.getElementById('ocr-modal').style.display='flex';
 }
@@ -583,16 +929,16 @@ function handleOcrFile(file){
   var bar=document.getElementById('ocr-bar');
   var status=document.getElementById('ocr-status');
   prog.style.display='block';
-  status.textContent='Načítám soubor...';bar.style.width='5%';
+  status.textContent='Na\u010d\u00edt\u00e1m soubor...';bar.style.width='5%';
   var reader=new FileReader();
   reader.onload=function(ev){
-    status.textContent='Spouštím OCR rozpoznávání (může trvat 10-30s)...';bar.style.width='15%';
+    status.textContent='Spou\u0161t\u00edm OCR rozpozn\u00e1v\u00e1n\u00ed...';bar.style.width='15%';
     Tesseract.recognize(ev.target.result,'ces+eng',{
       logger:function(m){
         if(m.status==='recognizing text'){
           var pct=Math.round(15+m.progress*80);
           bar.style.width=pct+'%';
-          status.textContent='Rozpoznávám text... '+pct+'%';
+          status.textContent='Rozpozn\u00e1v\u00e1m text... '+pct+'%';
         }
       }
     }).then(function(result){
@@ -614,18 +960,18 @@ function parseOcrText(txt){
   _ocrPolozky=[];
   for(var i=0;i<lines.length;i++){
     var l=lines[i];
-    var icoM=l.match(/I[Čč]O[:\s]*(\d{6,8})/i)||l.match(/IC[:\s]*(\d{6,8})/i);
+    var icoM=l.match(/I[\u010c\u010d]O[:\s]*(\d{6,8})/i)||l.match(/IC[:\s]*(\d{6,8})/i);
     if(icoM)ico=icoM[1];
-    var fakM=l.match(/[Ff]aktura[^0-9]*(\d[\d\-\/]+)/)||l.match(/[Čč][ií]slo\s*(?:dokladu|faktury)[:\s]*(\S+)/i);
+    var fakM=l.match(/[Ff]aktura[^0-9]*(\d[\d\-\/]+)/)||l.match(/[\u010c\u010d][\u00ed\u00edslo]*\s*(?:dokladu|faktury)[:\s]*(\S+)/i);
     if(fakM)fakCislo=fakM[1];
-    var vsM=l.match(/[Vv]ariabiln[ií]\s*symbol[:\s]*(\d+)/)||l.match(/VS[:\s]*(\d+)/);
+    var vsM=l.match(/[Vv]ariabiln[\u00ed\u00ed]\s*symbol[:\s]*(\d+)/)||l.match(/VS[:\s]*(\d+)/);
     if(vsM)vs=vsM[1];
     var datM=l.match(/(\d{1,2})\s*\.\s*(\d{1,2})\s*\.\s*(\d{4})/);
     if(datM&&!datum)datum=datM[3]+'-'+datM[2].padStart(2,'0')+'-'+datM[1].padStart(2,'0');
-    var celkM=l.match(/[Cc]elkem[^0-9]*(\d[\d\s,.]*)/)||l.match(/[Kk]\s*zaplacen[ií][^0-9]*(\d[\d\s,.]*)/);
+    var celkM=l.match(/[Cc]elkem[^0-9]*(\d[\d\s,.]*)/)||l.match(/[Kk]\s*zaplacen[\u00ed\u00ed][^0-9]*(\d[\d\s,.]*)/);
     if(celkM){var cv=celkM[1].replace(/\s/g,'').replace(',','.');castka=parseFloat(cv)||castka}
-    if(i<5&&!dodavatel&&l.length>3&&!l.match(/faktura|daňový|doklad|strana|page/i)){dodavatel=l}
-    var polM=l.match(/^(.+?)\s+(\d+)\s*(?:ks|m|bm|sada|set|hod)?\s+[\d\s,.]+\s+([\d\s,.]+)\s*(?:Kč|CZK)?$/i);
+    if(i<5&&!dodavatel&&l.length>3&&!l.match(/faktura|da\u0148ov\u00fd|doklad|strana|page/i)){dodavatel=l}
+    var polM=l.match(/^(.+?)\s+(\d+)\s*(?:ks|m|bm|sada|set|hod)?\s+[\d\s,.]+\s+([\d\s,.]+)\s*(?:K\u010d|CZK)?$/i);
     if(polM){
       var pn=polM[1].trim(),pm=parseInt(polM[2]),pc=parseFloat(polM[3].replace(/\s/g,'').replace(',','.'))||0;
       if(pn&&pm)_ocrPolozky.push({nazev:pn,mnozstvi:pm,cena:Math.round(pc/pm)||0});
@@ -644,12 +990,12 @@ function ocrCreateObj(){
   var target=document.getElementById('ocr-target').value;
   if(target==='fp'){
     var bz=Number(document.getElementById('ocr-castka').value)||0;
-    var data={id:gid(),cislo:document.getElementById('ocr-faktura-cislo').value||genCislo('FP'),dodavatel:document.getElementById('ocr-dodavatel').value,ico:document.getElementById('ocr-ico').value,dic:'',adresa:'',datumPrijeti:new Date(),duzp:document.getElementById('ocr-datum').value?new Date(document.getElementById('ocr-datum').value):null,castkaBezDph:bz,dphSazba:21,castka:Math.round(bz*1.21),vs:document.getElementById('ocr-vs').value,platba:'převodem',stav:'nová',splatnost:null,createdAt:new Date(),createdBy:'Progresklima',polozky:_editPolozky.filter(function(p){return p.nazev}),poznamka:'Import z OCR',objednavkaId:null};
-    _fakturyPrijate.unshift(data);
+    var data={id:gid(),cislo:document.getElementById('ocr-faktura-cislo').value||genCislo('FP'),dodavatel:document.getElementById('ocr-dodavatel').value,ico:document.getElementById('ocr-ico').value,dic:'',adresa:'',datumPrijeti:new Date(),duzp:document.getElementById('ocr-datum').value?new Date(document.getElementById('ocr-datum').value):null,castkaBezDph:bz,dphSazba:21,castka:Math.round(bz*1.21),vs:document.getElementById('ocr-vs').value,platba:'p\u0159evodem',stav:'nov\u00e1',splatnost:null,createdAt:new Date(),createdBy:'Progresklima',polozky:_editPolozky.filter(function(p){return p.nazev}),poznamka:'Import z OCR',objednavkaId:null};
+    _fakturyPrijate.unshift(data);if(_apiMode)apiPost('/api/faktury',data);
     closeModal('ocr-modal');switchTab('faktury-prijate');_selFp=data.id;renderFakturyPrijate();renderDashboard();
   } else {
-    var data2={id:gid(),cislo:genCislo('OBJ'),zakaznik:document.getElementById('ocr-dodavatel').value,kontakt:'',popis:'Z faktury: '+(document.getElementById('ocr-faktura-cislo').value||''),castka:Number(document.getElementById('ocr-castka').value)||0,stav:'nová',createdAt:new Date(),termin:null,createdBy:'Progresklima',polozky:_editPolozky.filter(function(p){return p.nazev}),poznamka:'Import z OCR, VS: '+(document.getElementById('ocr-vs').value||'—')+', IČO: '+(document.getElementById('ocr-ico').value||'—')};
-    _objednavky.unshift(data2);
+    var data2={id:gid(),cislo:genCislo('OBJ'),zakaznik:document.getElementById('ocr-dodavatel').value,kontakt:'',popis:'Z faktury: '+(document.getElementById('ocr-faktura-cislo').value||''),castka:Number(document.getElementById('ocr-castka').value)||0,stav:'nov\u00e1',createdAt:new Date(),termin:null,createdBy:'Progresklima',polozky:_editPolozky.filter(function(p){return p.nazev}),poznamka:'Import z OCR'};
+    _objednavky.unshift(data2);if(_apiMode)apiPost('/api/objednavky',data2);
     closeModal('ocr-modal');switchTab('objednavky');_selObj=data2.id;renderObjednavky();renderDashboard();
   }
 }
@@ -657,8 +1003,8 @@ function ocrCreateObj(){
 /* ===== VYKAZ VYMER ===== */
 var _vykRawData=null,_vykHeaders=[],_vykRows=[];
 var _vykFields=['popis','mnozstvi','jednotka','cena_jednotka','cena_celkem','kategorie'];
-var _vykFieldLabels={'popis':'Popis položky','mnozstvi':'Množství','jednotka':'Jednotka','cena_jednotka':'Cena/jedn.','cena_celkem':'Cena celkem','kategorie':'Kategorie'};
-var _vykCategories={'montaz':{label:'Montáže',cls:'cat-montaz',keys:['montáž','instalace','zapojení','připojení','osazení','demontáž','likvidace','práce','hod','nh']},'dodavka':{label:'Dodávky',cls:'cat-dodavka',keys:['jednotka','split','klimatizace','rekuperace','ventilátor','čerpadlo','kotel','výměník','regulace','čidlo','termostat','ovladač']},'izolace':{label:'Izolace',cls:'cat-izolace',keys:['izolace','izolační','kaučuk','minerální','skelná','lamelová','návlek']},'potrubi':{label:'Potrubí',cls:'cat-potrubi',keys:['potrubí','spiro','flexo','hadice','koleno','t-kus','klapka','mřížka','anemostat','distribuční','vyústka','tvarovka']},'jine':{label:'Jiné',cls:'cat-jine',keys:[]}};
+var _vykFieldLabels={'popis':'Popis polo\u017eky','mnozstvi':'Mno\u017estv\u00ed','jednotka':'Jednotka','cena_jednotka':'Cena/jedn.','cena_celkem':'Cena celkem','kategorie':'Kategorie'};
+var _vykCategories={'montaz':{label:'Mont\u00e1\u017ee',cls:'cat-montaz',keys:['mont\u00e1\u017e','instalace','zapojen\u00ed','p\u0159ipojen\u00ed','osazen\u00ed','demont\u00e1\u017e']},'dodavka':{label:'Dod\u00e1vky',cls:'cat-dodavka',keys:['jednotka','split','klimatizace','rekuperace','ventil\u00e1tor','\u010derpadlo']},'izolace':{label:'Izolace',cls:'cat-izolace',keys:['izolace','izola\u010dn\u00ed','kau\u010duk']},'potrubi':{label:'Potrub\u00ed',cls:'cat-potrubi',keys:['potrub\u00ed','spiro','flexo','koleno','t-kus','klapka']},'jine':{label:'Jin\u00e9',cls:'cat-jine',keys:[]}};
 function handleVykFile(file){
   if(!file)return;
   var ext=file.name.split('.').pop().toLowerCase();
@@ -688,7 +1034,7 @@ function showVykMapping(){
   document.getElementById('vyk-results').style.display='none';
   var html='';
   _vykFields.forEach(function(f){
-    html+='<div class="col-map"><label>'+_vykFieldLabels[f]+'</label><select id="vyk-map-'+f+'"><option value="-1">— nepřiřazeno —</option>';
+    html+='<div class="col-map"><label>'+_vykFieldLabels[f]+'</label><select id="vyk-map-'+f+'"><option value="-1">\u2014 nep\u0159i\u0159azeno \u2014</option>';
     _vykHeaders.forEach(function(h,i){
       var sel=autoMatchCol(f,h)?' selected':'';
       html+='<option value="'+i+'"'+sel+'>'+h+'</option>';
@@ -699,13 +1045,13 @@ function showVykMapping(){
 }
 function autoMatchCol(field,header){
   var h=header.toLowerCase();
-  var m={'popis':['popis','název','nazev','položka','polozka','text','item'],'mnozstvi':['množství','mnozstvi','počet','pocet','qty','mn.'],'jednotka':['jednotka','jedn','mj','j.','unit'],'cena_jednotka':['cena/j','jednotková','jednotkova','cena jedn','j.cena','unit price'],'cena_celkem':['celkem','cena celk','celková','celkova','total','suma'],'kategorie':['kategorie','typ','druh','category']};
+  var m={'popis':['popis','n\u00e1zev','nazev','polo\u017eka'],'mnozstvi':['mno\u017estv\u00ed','mnozstvi','po\u010det'],'jednotka':['jednotka','jedn','mj'],'cena_jednotka':['cena/j','jednotkov\u00e1','cena jedn'],'cena_celkem':['celkem','celkov\u00e1','total','suma'],'kategorie':['kategorie','typ','druh']};
   return m[field]&&m[field].some(function(k){return h.indexOf(k)>=0});
 }
 function applyVykMapping(){
   var map={};
   _vykFields.forEach(function(f){map[f]=Number(document.getElementById('vyk-map-'+f).value)});
-  if(map.popis<0)return alert('Musíte přiřadit alespoň sloupec "Popis položky"');
+  if(map.popis<0)return alert('Mus\u00edte p\u0159i\u0159adit alespo\u0148 sloupec "Popis polo\u017eky"');
   var items=_vykRows.map(function(row){
     var popis=map.popis>=0?String(row[map.popis]||'').trim():'';
     if(!popis)return null;
@@ -730,7 +1076,7 @@ function detectCategory(text){
   }
   return'jine';
 }
-function catLabel(k){return _vykCategories[k]?_vykCategories[k].label:(k||'Jiné')}
+function catLabel(k){return _vykCategories[k]?_vykCategories[k].label:(k||'Jin\u00e9')}
 function catCls(k){return _vykCategories[k]?_vykCategories[k].cls:'cat-jine'}
 var _vykItems=[];
 function showVykResults(items){
@@ -756,25 +1102,22 @@ function showVykResults(items){
   document.getElementById('vyk-items-table').innerHTML=th;
 }
 function exportVykHelios(){
-  if(!_vykItems.length)return alert('Žádné položky k exportu');
-  var csv='Kategorie;Popis;Množství;Jednotka;Cena za jednotku;Cena celkem\n';
+  if(!_vykItems.length)return alert('\u017d\u00e1dn\u00e9 polo\u017eky k exportu');
+  var csv='Kategorie;Popis;Mno\u017estv\u00ed;Jednotka;Cena za jednotku;Cena celkem\n';
   _vykItems.forEach(function(it){
     csv+=catLabel(it.kategorie)+';'+it.popis+';'+String(it.mnozstvi).replace('.',',')+';'+it.jednotka+';'+String(it.cenaJednotka).replace('.',',')+';'+String(it.cenaCelkem).replace('.',',')+'\n';
   });
-  var sums={};_vykItems.forEach(function(it){if(!sums[it.kategorie])sums[it.kategorie]=0;sums[it.kategorie]+=it.cenaCelkem});
-  csv+='\nSouhrn kategorií\n';
-  Object.keys(sums).forEach(function(k){csv+=catLabel(k)+';;;;;;'+String(sums[k]).replace('.',',')+'\n'});
-  csv+='CELKEM;;;;;;'+String(_vykItems.reduce(function(s,it){return s+it.cenaCelkem},0)).replace('.',',')+'\n';
   var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vykaz-vymer-helios.csv';a.click();
 }
 function createObjFromVyk(){
-  if(!_vykItems.length)return alert('Žádné položky');
-  var data={id:gid(),cislo:genCislo('OBJ'),zakaznik:'',kontakt:'',popis:'Z výkazu výměr',castka:_vykItems.reduce(function(s,it){return s+it.cenaCelkem},0),stav:'nová',createdAt:new Date(),termin:null,createdBy:'Progresklima',polozky:_vykItems.map(function(it){return{nazev:it.popis+' ('+catLabel(it.kategorie)+')',mnozstvi:it.mnozstvi,cena:it.cenaJednotka}}),poznamka:'Import z výkazu výměr'};
-  _objednavky.unshift(data);switchTab('objednavky');_selObj=data.id;renderObjednavky();renderDashboard();
+  if(!_vykItems.length)return alert('\u017d\u00e1dn\u00e9 polo\u017eky');
+  var data={id:gid(),cislo:genCislo('OBJ'),zakaznik:'',kontakt:'',popis:'Z v\u00fdkazu v\u00fdm\u011br',castka:_vykItems.reduce(function(s,it){return s+it.cenaCelkem},0),stav:'nov\u00e1',createdAt:new Date(),termin:null,createdBy:'Progresklima',polozky:_vykItems.map(function(it){return{nazev:it.popis+' ('+catLabel(it.kategorie)+')',mnozstvi:it.mnozstvi,cena:it.cenaJednotka}}),poznamka:'Import z v\u00fdkazu v\u00fdm\u011br'};
+  _objednavky.unshift(data);if(_apiMode)apiPost('/api/objednavky',data);switchTab('objednavky');_selObj=data.id;renderObjednavky();renderDashboard();
 }
 
-renderObjednavky();renderFakturyPrijate();renderFakturyVydane();renderPrijemky();renderDashboard();
+/* ===== INIT ===== */
+loadData();
 </script>
 </body>
 </html>

@@ -258,7 +258,7 @@ app.get('/api/sklad/:id/qr', (req, res) => {
 });
 
 // Generic CRUD routes for each entity
-const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky', 'zakaznici', 'cenik', 'sablony',
+const entities = ['objednavky', 'faktury', 'zakazky', 'prijemky', 'vydejky', 'zakaznici', 'cenik', 'sablony',
   'sklad', 'sklad_pohyby', 'servis_historie', 'upominky', 'fotodokumentace', 'zalohove_faktury',
   'nabidky', 'reklamace', 'dodavatele', 'vozidla', 'vozidla_tankovani', 'crm_zaznamy'];
 

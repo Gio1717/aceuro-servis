@@ -205,6 +205,20 @@ function init() {
       poznamka TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS vydejky (
+      id TEXT PRIMARY KEY,
+      cislo TEXT NOT NULL,
+      objednavka_id TEXT,
+      faktura_id TEXT,
+      zakaznik TEXT,
+      datum_vydeje TEXT,
+      stav TEXT DEFAULT 'nová',
+      created_at TEXT,
+      created_by TEXT,
+      poznamka TEXT,
+      polozky TEXT DEFAULT '[]'
+    );
+
     CREATE TABLE IF NOT EXISTS nabidky (
       id TEXT PRIMARY KEY,
       cislo TEXT NOT NULL,
@@ -359,6 +373,7 @@ const colMap = {
   zakazkaId: 'zakazka_id', entityType: 'entity_type',
   entityId: 'entity_id', userName: 'user_name',
   targetUser: 'target_user',
+  datumVydeje: 'datum_vydeje', fakturaId: 'faktura_id',
   minMnozstvi: 'min_mnozstvi', cenaNakup: 'cena_nakup',
   cenaProdej: 'cena_prodej', skladId: 'sklad_id',
   zakaznikId: 'zakaznik_id', typZasahu: 'typ_zasahu',
