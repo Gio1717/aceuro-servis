@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Progresklima — Zpracování faktur</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a3d8f;--navy2:#1254c4;--blue:#1e90ff;--blue2:rgba(30,144,255,.08);
+  --green:#6abf3e;--green2:#5aaf2e;
+  --bg:#eef3fb;--card:#fff;--border:#c5d5ee;
+  --text:#1a2540;--muted:#6b7a99;--lt:#8a9ab8;
+  --err:#e74c3c;--warn:#f0a500;--orange:#e67e22;
+  --dph-rate:0.21;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* === TOPBAR === */
+.topbar{background:linear-gradient(135deg,#0a3d8f 0%,#1254c4 100%);height:54px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar h1{color:#fff;font-size:16px;font-weight:700;letter-spacing:.02em}
+.topbar h1 span{color:#7ec8ff;font-weight:400}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge-role{background:rgba(30,144,255,.25);border:1px solid rgba(30,144,255,.5);color:#a0d4ff;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.topbar-link{color:rgba(255,255,255,.7);font-size:12px;text-decoration:none;transition:color .2s}
+.topbar-link:hover{color:#fff}
+
+/* === TABS === */
+.tabs{background:#1254c4;display:flex;padding:0 20px;gap:4px;flex-shrink:0;overflow-x:auto}
+.tab-btn{padding:10px 16px;border:none;background:none;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.tab-btn.active{color:#fff;border-bottom-color:#7ec8ff}
+.tab-btn:hover:not(.active){color:rgba(255,255,255,.85)}
+.tab-panel{display:none;flex:1;overflow:hidden}.tab-panel.active{display:flex;flex-direction:column}
+
+/* === DASHBOARD === */
+.dash{padding:24px;overflow-y:auto;flex:1}
+.dash h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--navy)}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:transform .15s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card .label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.stat-card .val{font-size:28px;font-weight:700;color:var(--navy)}
+.stat-card .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.stat-card.green .val{color:var(--green)}
+.stat-card.orange .val{color:var(--orange)}
+.stat-card.red .val{color:var(--err)}
+.stat-card.blue .val{color:var(--blue)}
+
+/* === CHART === */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:24px}
+.chart-card h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:160px;padding:0 4px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;height:100%}
+.chart-bar{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--blue) 0%,var(--navy2) 100%);transition:height .4s;min-height:4px;margin-top:auto}
+.chart-bar.paid{background:linear-gradient(180deg,var(--green) 0%,var(--green2) 100%)}
+.chart-label{font-size:10px;color:var(--muted);margin-top:6px;font-weight:600}
+.chart-val{font-size:9px;color:var(--navy);font-weight:700;margin-bottom:4px}
+
+/* === SPLIT LAYOUT === */
+.split-layout{display:grid;grid-template-columns:380px 1fr;flex:1;min-height:0;height:calc(100vh - 98px);overflow:hidden}
+@media(max-width:900px){.split-layout{grid-template-columns:1fr;height:auto}}
+.list-panel{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.list-toolbar{padding:12px;display:flex;gap:8px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.list-toolbar input,.list-toolbar select{border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-family:inherit;font-size:12px;outline:none;flex:1;min-width:80px}
+.list-toolbar input:focus,.list-toolbar select:focus{border-color:var(--blue)}
+.btn-new{background:var(--blue);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-new:hover{filter:brightness(1.1)}
+.list-scroll{overflow-y:auto;flex:1;padding:8px}
+.list-count{padding:6px 12px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600}
+
+/* === ITEM CARD === */
+.item-card{padding:12px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .15s;background:var(--card)}
+.item-card:hover{border-color:var(--blue);background:var(--blue2)}
+.item-card.active{border-color:var(--blue);background:var(--blue2);box-shadow:0 2px 8px rgba(30,144,255,.12)}
+.item-card.overdue{border-left:3px solid var(--err)}
+.item-card.paid{border-left:3px solid var(--green)}
+.item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.item-num{font-size:13px;font-weight:700;color:var(--navy)}
+.item-amount{font-size:13px;font-weight:700;color:var(--green)}
+.item-sub{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-top:3px}
+
+/* === STATUS CHIPS === */
+.stav-chip{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.st-nova{background:#e8f0fe;color:#1a5fb5}
+.st-odeslana{background:#fff3e0;color:#b57a1a}
+.st-zaplacena{background:#d4edda;color:#155724}
+.st-po-splatnosti{background:#fde8e8;color:#b91c1c}
+.st-storno{background:#f0f0f0;color:#666}
+.st-castecne{background:#fef3cd;color:#856404}
+
+/* === DETAIL PANEL === */
+.detail-panel{overflow-y:auto;padding:24px;background:var(--bg)}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.detail-header h2{font-size:20px;font-weight:700;color:var(--navy)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.dfield label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.dfield span,.dfield p{font-size:13px}
+.dfield.full{grid-column:1/-1}
+.amount-big{font-size:22px;font-weight:700;color:var(--green)}
+.amount-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.amount-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.amount-row.total{border-top:2px solid var(--navy);padding-top:10px;margin-top:6px;font-size:16px;font-weight:700}
+.empty-msg{text-align:center;color:var(--muted);padding:60px 20px;font-size:13px}
+.empty-msg .icon{font-size:40px;margin-bottom:12px;opacity:.3}
+
+/* === DETAIL ACTIONS === */
+.detail-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border)}
+.btn-action{border:none;border-radius:6px;padding:8px 16px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-edit{background:var(--blue);color:#fff}.btn-edit:hover{filter:brightness(1.1)}
+.btn-paid{background:var(--green);color:#fff}.btn-paid:hover{background:var(--green2)}
+.btn-export{background:var(--orange);color:#fff}.btn-export:hover{filter:brightness(1.1)}
+.btn-del{background:var(--err);color:#fff}.btn-del:hover{filter:brightness(1.1)}
+.btn-secondary{background:var(--card);color:var(--text);border:1.5px solid var(--border)}.btn-secondary:hover{background:var(--bg)}
+.btn-remind{background:#8e44ad;color:#fff}.btn-remind:hover{filter:brightness(1.1)}
+
+/* === ITEMS TABLE === */
+.pol-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.pol-table th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.pol-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.pol-table tr:last-child td{border-bottom:none}
+.pol-table .r{text-align:right}
+
+/* === MODAL === */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:14px;padding:28px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-box h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:18px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fg label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.fg input,.fg select,.fg textarea{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:9px 12px;font-family:inherit;font-size:13px;outline:none;color:var(--text)}
+.fg textarea{min-height:60px;resize:vertical}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue)}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+.btn-save{background:var(--green);color:#fff;border:none;border-radius:7px;padding:10px 24px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-save:hover{background:var(--green2)}
+.btn-cancel{background:var(--card);color:var(--text);border:1.5px solid var(--border);border-radius:7px;padding:10px 24px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.btn-cancel:hover{background:var(--bg)}
+
+/* === POLOZKY EDITOR === */
+.pol-editor{border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px;background:var(--bg)}
+.pol-editor h4{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.pol-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center}
+.pol-row input{border:1.5px solid var(--border);border-radius:5px;padding:7px 8px;font-family:inherit;font-size:12px}
+.pol-row input:focus{border-color:var(--blue);outline:none}
+.btn-pol-del{background:var(--err);color:#fff;border:none;border-radius:4px;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1}
+.btn-pol-add{background:var(--blue2);color:var(--blue);border:1px dashed var(--blue);border-radius:5px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px}
+.pol-totals{display:flex;gap:20px;margin-top:12px;font-size:13px;font-weight:600;flex-wrap:wrap}
+.pol-totals .t-label{color:var(--muted)}
+.pol-totals .t-val{color:var(--navy);font-weight:700}
+.pol-totals .t-total{color:var(--green);font-size:16px;font-weight:700}
+
+/* === FIO BANK === */
+.fio-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.fio-section h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px}
+.fio-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.fio-row input{flex:1;border:1.5px solid var(--border);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:13px}
+.fio-match{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;background:var(--bg)}
+.fio-match.matched{background:#d4edda;border-color:#28a745}
+
+/* === CASHFLOW === */
+.cf-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-top:12px}
+.cf-table th{background:var(--navy);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left}
+.cf-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+.cf-table .positive{color:var(--green);font-weight:600}
+.cf-table .negative{color:var(--err);font-weight:600}
+
+/* === RECENT TABLE === */
+.recent-tbl{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.recent-tbl th{background:var(--navy);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left}
+.recent-tbl td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border)}
+
+/* === TOAST === */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:14px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:2000;transform:translateY(100px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:var(--err)}
+.toast.success{background:var(--green2)}
+
+/* === PRINT === */
+@media print{
+  .topbar,.tabs,.list-panel,.detail-actions,.btn-action,.toast{display:none!important}
+  .split-layout{grid-template-columns:1fr!important;height:auto!important}
+  .detail-panel{padding:0!important}
+  body{background:#fff}
+}
+
+/* === LOADING === */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;z-index:10}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <h1>Progresklima <span>— Zpracování faktur</span></h1>
+    <div class="topbar-right">
+      <span class="badge-role">Fakturant</span>
+      <a href="index.html" class="topbar-link">Hlavni aplikace</a>
+      <a href="objednavky_faktury.html" class="topbar-link">Objednavky</a>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="prehled">Prehled</button>
+    <button class="tab-btn" data-tab="faktury">Faktury</button>
+    <button class="tab-btn" data-tab="zalohove">Zalohove faktury</button>
+    <button class="tab-btn" data-tab="platby">Platby & Banka</button>
+    <button class="tab-btn" data-tab="cashflow">Cash Flow</button>
+    <button class="tab-btn" data-tab="upominky">Upominky</button>
+  </div>
+
+  <!-- TAB: PŘEHLED -->
+  <div class="tab-panel active" id="tab-prehled">
+    <div class="dash">
+      <div class="stat-row" id="stats-row"></div>
+      <div class="chart-card">
+        <h4>Mesicni prehled fakturace (poslednich 6 mesicu)</h4>
+        <div class="chart-bars" id="chart-monthly"></div>
+      </div>
+      <h3>Posledni faktury</h3>
+      <table class="recent-tbl">
+        <thead><tr><th>Cislo</th><th>Zakaznik</th><th>Castka</th><th>Splatnost</th><th>Stav</th></tr></thead>
+        <tbody id="recent-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: FAKTURY -->
+  <div class="tab-panel" id="tab-faktury">
+    <div class="split-layout">
+      <div class="list-panel">
+        <div class="list-toolbar">
+          <input type="text" id="fak-search" placeholder="Hledat fakturu...">
+          <select id="fak-filter">
+            <option value="">Vse</option>
+            <option value="nova">Nova</option>
+            <option value="odeslana">Odeslana</option>
+            <option value="zaplacena">Zaplacena</option>
+            <option value="po_splatnosti">Po splatnosti</option>
+            <option value="castecne_zaplacena">Castecne</option>
+            <option value="storno">Storno</option>
+          </select>
+          <button class="btn-new" onclick="newFaktura()">+ Nova faktura</button>
+        </div>
+        <div class="list-count" id="fak-count">Nacitani...</div>
+        <div class="list-scroll" id="fak-list"></div>
+      </div>
+      <div class="detail-panel" id="fak-detail">
+        <div class="empty-msg"><div class="icon">&#128196;</div>Vyberte fakturu ze seznamu<br>nebo vytvorte novou</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ZÁLOHOVÉ FAKTURY -->
+  <div class="tab-panel" id="tab-zalohove">
+    <div class="split-layout">
+      <div class="list-panel">
+        <div class="list-toolbar">
+          <input type="text" id="zal-search" placeholder="Hledat zalohovou fakturu...">
+          <button class="btn-new" onclick="newZalohovaFaktura()">+ Nova zalohova faktura</button>
+        </div>
+        <div class="list-count" id="zal-count">Nacitani...</div>
+        <div class="list-scroll" id="zal-list"></div>
+      </div>
+      <div class="detail-panel" id="zal-detail">
+        <div class="empty-msg"><div class="icon">&#128179;</div>Vyberte zalohovou fakturu<br>nebo vytvorte novou</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PLATBY & BANKA -->
+  <div class="tab-panel" id="tab-platby">
+    <div class="dash">
+      <div class="fio-section">
+        <h4>FIO Banka — Automaticke parovani plateb</h4>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Zadejte FIO API token pro automaticke parovani plateb s fakturami podle variabilniho symbolu.</p>
+        <div class="fio-row">
+          <input type="password" id="fio-token" placeholder="FIO API Token">
+          <button class="btn-new" onclick="checkFioPayments()">Zkontrolovat platby</button>
+        </div>
+        <div id="fio-results"></div>
+      </div>
+      <h3>Nezaplacene faktury</h3>
+      <table class="recent-tbl">
+        <thead><tr><th>Cislo</th><th>Zakaznik</th><th>VS</th><th>Castka</th><th>Splatnost</th><th>Dni po spl.</th><th>Akce</th></tr></thead>
+        <tbody id="unpaid-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: CASH FLOW -->
+  <div class="tab-panel" id="tab-cashflow">
+    <div class="dash">
+      <h3>Prehled cash flow (8 mesicu)</h3>
+      <div id="cf-container"></div>
+    </div>
+  </div>
+
+  <!-- TAB: UPOMÍNKY -->
+  <div class="tab-panel" id="tab-upominky">
+    <div class="dash">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0">Upominky po splatnosti</h3>
+        <button class="btn-new" onclick="generateUpominky()">Generovat upominky</button>
+      </div>
+      <table class="recent-tbl">
+        <thead><tr><th>Cislo upominky</th><th>Faktura</th><th>Zakaznik</th><th>Castka</th><th>Poradi</th><th>Datum</th></tr></thead>
+        <tbody id="upominky-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVÁ FAKTURA -->
+<div class="modal-overlay" id="modal-faktura">
+  <div class="modal-box">
+    <h3 id="modal-fak-title">Nova faktura</h3>
+    <input type="hidden" id="fak-id">
+    <div class="modal-row">
+      <div class="fg">
+        <label>Cislo faktury</label>
+        <input id="fak-cislo" placeholder="Automaticky">
+      </div>
+      <div class="fg">
+        <label>Typ</label>
+        <select id="fak-typ">
+          <option value="vydana">Vydana</option>
+          <option value="prijata">Prijata</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Zakaznik / Odberatel</label>
+      <input id="fak-zakaznik" placeholder="Nazev firmy nebo jmeno" list="zakaznik-list">
+      <datalist id="zakaznik-list"></datalist>
+    </div>
+    <div class="modal-row-3">
+      <div class="fg">
+        <label>ICO</label>
+        <input id="fak-ico" placeholder="12345678">
+      </div>
+      <div class="fg">
+        <label>DIC</label>
+        <input id="fak-dic" placeholder="CZ12345678">
+      </div>
+      <div class="fg">
+        <label>Variabilni symbol</label>
+        <input id="fak-vs" placeholder="VS">
+      </div>
+    </div>
+    <div class="modal-row-3">
+      <div class="fg">
+        <label>Datum vystaveni</label>
+        <input type="date" id="fak-datum">
+      </div>
+      <div class="fg">
+        <label>Datum splatnosti</label>
+        <input type="date" id="fak-splatnost">
+      </div>
+      <div class="fg">
+        <label>Sazba DPH (%)</label>
+        <select id="fak-dph-sazba">
+          <option value="21">21%</option>
+          <option value="12">12%</option>
+          <option value="0">0% (osvobozeno)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="fg">
+        <label>Forma uhrady</label>
+        <select id="fak-uhrada">
+          <option value="prevod">Bankovni prevod</option>
+          <option value="hotovost">Hotovost</option>
+          <option value="karta">Platebni karta</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Objednavka (vazba)</label>
+        <input id="fak-objednavka" placeholder="Cislo objednavky">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Poznamka</label>
+      <textarea id="fak-poznamka" placeholder="Dalsi informace k fakture..."></textarea>
+    </div>
+
+    <!-- POLOŽKY -->
+    <div class="pol-editor">
+      <h4>Polozky faktury</h4>
+      <div class="pol-row" style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">
+        <span>Popis</span><span>Mnozstvi</span><span>Jednotka</span><span>Cena/ks</span><span></span>
+      </div>
+      <div id="pol-rows"></div>
+      <button class="btn-pol-add" type="button" onclick="addPolRow()">+ Pridat polozku</button>
+      <div class="pol-totals" id="pol-totals"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-faktura')">Zrusit</button>
+      <button class="btn-save" onclick="saveFaktura()">Ulozit fakturu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ZÁLOHOVÁ FAKTURA -->
+<div class="modal-overlay" id="modal-zalohova">
+  <div class="modal-box">
+    <h3 id="modal-zal-title">Nova zalohova faktura</h3>
+    <input type="hidden" id="zal-id">
+    <div class="modal-row">
+      <div class="fg">
+        <label>Cislo</label>
+        <input id="zal-cislo" placeholder="Automaticky">
+      </div>
+      <div class="fg">
+        <label>Zakaznik</label>
+        <input id="zal-zakaznik" placeholder="Nazev firmy" list="zakaznik-list">
+      </div>
+    </div>
+    <div class="modal-row-3">
+      <div class="fg">
+        <label>Castka bez DPH</label>
+        <input type="number" step="0.01" id="zal-castka" oninput="calcZalDph()">
+      </div>
+      <div class="fg">
+        <label>DPH (%)</label>
+        <select id="zal-dph" onchange="calcZalDph()">
+          <option value="21">21%</option>
+          <option value="12">12%</option>
+          <option value="0">0%</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Celkem s DPH</label>
+        <input type="number" step="0.01" id="zal-celkem" readonly style="background:#f5f5f5;font-weight:700">
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="fg">
+        <label>Datum vystaveni</label>
+        <input type="date" id="zal-datum">
+      </div>
+      <div class="fg">
+        <label>Datum splatnosti</label>
+        <input type="date" id="zal-splatnost">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Popis / ucel zalohy</label>
+      <textarea id="zal-popis" placeholder="Ucel zalohove faktury..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-zalohova')">Zrusit</button>
+      <button class="btn-save" onclick="saveZalohovaFaktura()">Ulozit</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin + '/api';
+let faktury = [];
+let zalohoveFaktury = [];
+let zakaznici = [];
+let upominky = [];
+let selectedFaktura = null;
+let selectedZalohova = null;
+let editMode = false;
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', async () => {
+  initTabs();
+  await loadAll();
+});
+
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+async function loadAll() {
+  try {
+    const [fakRes, zalRes, zakRes, upoRes] = await Promise.all([
+      fetch(API + '/faktury').then(r => r.json()),
+      fetch(API + '/zalohove_faktury').then(r => r.json()),
+      fetch(API + '/zakaznici').then(r => r.json()),
+      fetch(API + '/upominky').then(r => r.json())
+    ]);
+    faktury = fakRes || [];
+    zalohoveFaktury = zalRes || [];
+    zakaznici = zakRes || [];
+    upominky = upoRes || [];
+    renderAll();
+  } catch (e) {
+    console.error('Load error:', e);
+    toast('Chyba pri nacitani dat: ' + e.message, 'error');
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderChart();
+  renderRecentTable();
+  renderFakturaList();
+  renderZalList();
+  renderUnpaid();
+  renderUpominky();
+  loadCashFlow();
+  populateZakaznikList();
+}
+
+// ===== HELPERS =====
+function fmt(n) {
+  return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', minimumFractionDigits: 0 }).format(n || 0);
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('cs-CZ');
+}
+
+function daysOverdue(splatnost) {
+  if (!splatnost) return 0;
+  const diff = Date.now() - new Date(splatnost).getTime();
+  return Math.max(0, Math.floor(diff / 86400000));
+}
+
+function getStav(f) {
+  const stav = (f.stav || 'nova').toLowerCase().replace(/\s+/g, '_').replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i');
+  if (stav === 'zaplacena' || stav === 'zaplacená') return 'zaplacena';
+  if (stav === 'storno') return 'storno';
+  if (stav === 'castecne_zaplacena' || stav === 'částečně_zaplacená') return 'castecne';
+  if (f.splatnost && new Date(f.splatnost) < new Date() && stav !== 'zaplacena') return 'po_splatnosti';
+  if (stav === 'odeslana' || stav === 'odeslaná') return 'odeslana';
+  return 'nova';
+}
+
+function stavLabel(stav) {
+  const map = { nova: 'Nova', odeslana: 'Odeslana', zaplacena: 'Zaplacena', po_splatnosti: 'Po splatnosti', storno: 'Storno', castecne: 'Castecne' };
+  return map[stav] || stav;
+}
+
+function stavClass(stav) {
+  return 'st-' + stav.replace('_', '-');
+}
+
+function getCelkem(f) {
+  return parseFloat(f.celkem || f.castka || f.celkemSDph || 0);
+}
+
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ===== STATS =====
+function renderStats() {
+  const total = faktury.length;
+  const zaplacene = faktury.filter(f => getStav(f) === 'zaplacena');
+  const nezaplacene = faktury.filter(f => getStav(f) !== 'zaplacena' && getStav(f) !== 'storno');
+  const poSpl = faktury.filter(f => getStav(f) === 'po_splatnosti');
+  const sumAll = faktury.reduce((s, f) => s + getCelkem(f), 0);
+  const sumPaid = zaplacene.reduce((s, f) => s + getCelkem(f), 0);
+  const sumUnpaid = nezaplacene.reduce((s, f) => s + getCelkem(f), 0);
+  const sumOverdue = poSpl.reduce((s, f) => s + getCelkem(f), 0);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card blue"><div class="label">Celkem faktur</div><div class="val">${total}</div><div class="sub">Celkovy obrat: ${fmt(sumAll)}</div></div>
+    <div class="stat-card green"><div class="label">Zaplaceno</div><div class="val">${zaplacene.length}</div><div class="sub">${fmt(sumPaid)}</div></div>
+    <div class="stat-card orange"><div class="label">Nezaplaceno</div><div class="val">${nezaplacene.length}</div><div class="sub">${fmt(sumUnpaid)}</div></div>
+    <div class="stat-card red"><div class="label">Po splatnosti</div><div class="val">${poSpl.length}</div><div class="sub">${fmt(sumOverdue)}</div></div>
+  `;
+}
+
+// ===== CHART =====
+function renderChart() {
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('cs-CZ', { month: 'short', year: '2-digit' }) });
+  }
+  const data = months.map(m => {
+    const mFaktury = faktury.filter(f => {
+      const d = new Date(f.datum || f.createdAt || f.created_at);
+      return d.getFullYear() === m.year && d.getMonth() === m.month;
+    });
+    const total = mFaktury.reduce((s, f) => s + getCelkem(f), 0);
+    const paid = mFaktury.filter(f => getStav(f) === 'zaplacena').reduce((s, f) => s + getCelkem(f), 0);
+    return { ...m, total, paid };
+  });
+  const maxVal = Math.max(...data.map(d => d.total), 1);
+  document.getElementById('chart-monthly').innerHTML = data.map(d => `
+    <div class="chart-bar-wrap">
+      <div class="chart-val">${fmt(d.total)}</div>
+      <div class="chart-bar" style="height:${Math.max((d.total / maxVal) * 100, 3)}%"></div>
+      <div class="chart-bar paid" style="height:${Math.max((d.paid / maxVal) * 100, 2)}%;margin-top:4px;border-radius:6px"></div>
+      <div class="chart-label">${d.label}</div>
+    </div>
+  `).join('');
+}
+
+// ===== RECENT TABLE =====
+function renderRecentTable() {
+  const recent = [...faktury].sort((a, b) => new Date(b.datum || b.createdAt || b.created_at || 0) - new Date(a.datum || a.createdAt || a.created_at || 0)).slice(0, 10);
+  document.getElementById('recent-tbody').innerHTML = recent.map(f => {
+    const stav = getStav(f);
+    return `<tr>
+      <td><strong>${f.cislo || '-'}</strong></td>
+      <td>${f.zakaznik || '-'}</td>
+      <td style="font-weight:600">${fmt(getCelkem(f))}</td>
+      <td>${fmtDate(f.splatnost)}</td>
+      <td><span class="stav-chip ${stavClass(stav)}">${stavLabel(stav)}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Zadne faktury</td></tr>';
+}
+
+// ===== FAKTURA LIST =====
+function renderFakturaList() {
+  const search = (document.getElementById('fak-search').value || '').toLowerCase();
+  const filter = document.getElementById('fak-filter').value;
+  let list = faktury.filter(f => {
+    if (search && !(f.cislo || '').toLowerCase().includes(search) && !(f.zakaznik || '').toLowerCase().includes(search) && !(f.vs || '').toLowerCase().includes(search)) return false;
+    if (filter) {
+      const stav = getStav(f);
+      if (filter === 'po_splatnosti' && stav !== 'po_splatnosti') return false;
+      if (filter !== 'po_splatnosti' && stav !== filter) return false;
+    }
+    return true;
+  });
+  list.sort((a, b) => new Date(b.datum || b.createdAt || b.created_at || 0) - new Date(a.datum || a.createdAt || a.created_at || 0));
+  document.getElementById('fak-count').textContent = `${list.length} z ${faktury.length} faktur`;
+  document.getElementById('fak-list').innerHTML = list.map(f => {
+    const stav = getStav(f);
+    const cls = stav === 'po_splatnosti' ? 'overdue' : stav === 'zaplacena' ? 'paid' : '';
+    const isActive = selectedFaktura && selectedFaktura.id === f.id ? 'active' : '';
+    return `<div class="item-card ${cls} ${isActive}" onclick="selectFaktura('${f.id}')">
+      <div class="item-head">
+        <span class="item-num">${f.cislo || 'Bez cisla'}</span>
+        <span class="item-amount">${fmt(getCelkem(f))}</span>
+      </div>
+      <div class="item-sub">${f.zakaznik || 'Bez zakaznika'}</div>
+      <div class="item-meta">
+        <span>${fmtDate(f.datum || f.createdAt || f.created_at)}</span>
+        <span class="stav-chip ${stavClass(stav)}">${stavLabel(stav)}</span>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-msg">Zadne faktury k zobrazeni</div>';
+}
+
+document.getElementById('fak-search').addEventListener('input', renderFakturaList);
+document.getElementById('fak-filter').addEventListener('change', renderFakturaList);
+
+// ===== FAKTURA DETAIL =====
+function selectFaktura(id) {
+  selectedFaktura = faktury.find(f => f.id === id);
+  if (!selectedFaktura) return;
+  renderFakturaList();
+  renderFakturaDetail();
+}
+
+function renderFakturaDetail() {
+  const f = selectedFaktura;
+  if (!f) return;
+  const stav = getStav(f);
+  const polozky = parsePolozky(f.polozky);
+  const castka = parseFloat(f.castka || 0);
+  const dph = parseFloat(f.dph || 0);
+  const celkem = getCelkem(f);
+
+  const detail = document.getElementById('fak-detail');
+  detail.innerHTML = `
+    <div class="detail-header">
+      <h2>${f.cislo || 'Faktura'}</h2>
+      <span class="stav-chip ${stavClass(stav)}">${stavLabel(stav)}</span>
+    </div>
+
+    <div class="detail-grid">
+      <div class="dfield"><label>Zakaznik</label><span>${f.zakaznik || '-'}</span></div>
+      <div class="dfield"><label>Typ</label><span>${f.typ === 'prijata' ? 'Prijata' : 'Vydana'}</span></div>
+      <div class="dfield"><label>ICO</label><span>${f.ico || '-'}</span></div>
+      <div class="dfield"><label>DIC</label><span>${f.dic || '-'}</span></div>
+      <div class="dfield"><label>Datum vystaveni</label><span>${fmtDate(f.datum)}</span></div>
+      <div class="dfield"><label>Datum splatnosti</label><span>${fmtDate(f.splatnost)}${stav === 'po_splatnosti' ? ' <strong style="color:var(--err)">(' + daysOverdue(f.splatnost) + ' dni po spl.)</strong>' : ''}</span></div>
+      <div class="dfield"><label>Variabilni symbol</label><span>${f.vs || '-'}</span></div>
+      <div class="dfield"><label>Forma uhrady</label><span>${f.uhrada || f.formaUhrady || 'prevod'}</span></div>
+      ${f.objednavka ? `<div class="dfield"><label>Objednavka</label><span>${f.objednavka}</span></div>` : ''}
+      ${f.poznamka ? `<div class="dfield full"><label>Poznamka</label><p>${f.poznamka}</p></div>` : ''}
+    </div>
+
+    ${polozky.length > 0 ? `
+      <h3 style="font-size:13px;font-weight:700;color:var(--navy);margin:16px 0 8px">Polozky</h3>
+      <table class="pol-table">
+        <thead><tr><th>Popis</th><th class="r">Mnozstvi</th><th>Jednotka</th><th class="r">Cena/ks</th><th class="r">Celkem</th></tr></thead>
+        <tbody>${polozky.map(p => `<tr>
+          <td>${p.popis || '-'}</td>
+          <td class="r">${p.mnozstvi || 1}</td>
+          <td>${p.jednotka || 'ks'}</td>
+          <td class="r">${fmt(p.cena || 0)}</td>
+          <td class="r" style="font-weight:600">${fmt((p.mnozstvi || 1) * (p.cena || 0))}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : ''}
+
+    <div class="amount-section">
+      <div class="amount-row"><span>Zaklad bez DPH</span><strong>${fmt(castka)}</strong></div>
+      <div class="amount-row"><span>DPH (${f.dphSazba || f.dph_sazba || 21}%)</span><strong>${fmt(dph)}</strong></div>
+      <div class="amount-row total"><span>Celkem s DPH</span><span class="amount-big">${fmt(celkem)}</span></div>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn-action btn-edit" onclick="editFaktura()">Upravit</button>
+      ${stav !== 'zaplacena' ? `<button class="btn-action btn-paid" onclick="markPaid('${f.id}')">Oznacit jako zaplacenou</button>` : ''}
+      <button class="btn-action btn-export" onclick="exportIsdoc('${f.id}')">ISDOC export</button>
+      <button class="btn-action btn-secondary" onclick="printFaktura()">Tisk</button>
+      <button class="btn-action btn-del" onclick="deleteFaktura('${f.id}')">Smazat</button>
+    </div>
+  `;
+}
+
+function parsePolozky(pol) {
+  if (!pol) return [];
+  if (typeof pol === 'string') { try { return JSON.parse(pol); } catch { return []; } }
+  if (Array.isArray(pol)) return pol;
+  return [];
+}
+
+// ===== FAKTURA CRUD =====
+async function newFaktura() {
+  editMode = false;
+  document.getElementById('modal-fak-title').textContent = 'Nova faktura';
+  document.getElementById('fak-id').value = '';
+  document.getElementById('fak-zakaznik').value = '';
+  document.getElementById('fak-ico').value = '';
+  document.getElementById('fak-dic').value = '';
+  document.getElementById('fak-vs').value = '';
+  document.getElementById('fak-poznamka').value = '';
+  document.getElementById('fak-objednavka').value = '';
+  document.getElementById('fak-typ').value = 'vydana';
+  document.getElementById('fak-uhrada').value = 'prevod';
+  document.getElementById('fak-dph-sazba').value = '21';
+  const today = new Date().toISOString().split('T')[0];
+  const spl = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+  document.getElementById('fak-datum').value = today;
+  document.getElementById('fak-splatnost').value = spl;
+  // Auto-number
+  try {
+    const res = await fetch(API + '/next-number/FAK');
+    const data = await res.json();
+    document.getElementById('fak-cislo').value = data.cislo || '';
+    document.getElementById('fak-vs').value = (data.cislo || '').replace(/\D/g, '') || '';
+  } catch { }
+  // Reset items
+  document.getElementById('pol-rows').innerHTML = '';
+  addPolRow();
+  calcPolTotals();
+  openModal('modal-faktura');
+}
+
+function editFaktura() {
+  if (!selectedFaktura) return;
+  editMode = true;
+  const f = selectedFaktura;
+  document.getElementById('modal-fak-title').textContent = 'Upravit fakturu ' + (f.cislo || '');
+  document.getElementById('fak-id').value = f.id;
+  document.getElementById('fak-cislo').value = f.cislo || '';
+  document.getElementById('fak-zakaznik').value = f.zakaznik || '';
+  document.getElementById('fak-ico').value = f.ico || '';
+  document.getElementById('fak-dic').value = f.dic || '';
+  document.getElementById('fak-vs').value = f.vs || '';
+  document.getElementById('fak-poznamka').value = f.poznamka || '';
+  document.getElementById('fak-objednavka').value = f.objednavka || '';
+  document.getElementById('fak-typ').value = f.typ || 'vydana';
+  document.getElementById('fak-uhrada').value = f.uhrada || f.formaUhrady || 'prevod';
+  document.getElementById('fak-dph-sazba').value = String(f.dphSazba || f.dph_sazba || 21);
+  document.getElementById('fak-datum').value = (f.datum || '').split('T')[0];
+  document.getElementById('fak-splatnost').value = (f.splatnost || '').split('T')[0];
+  // Load items
+  const polozky = parsePolozky(f.polozky);
+  document.getElementById('pol-rows').innerHTML = '';
+  if (polozky.length > 0) {
+    polozky.forEach(p => addPolRow(p));
+  } else {
+    addPolRow();
+  }
+  calcPolTotals();
+  openModal('modal-faktura');
+}
+
+async function saveFaktura() {
+  const id = document.getElementById('fak-id').value || crypto.randomUUID();
+  const polozky = getPolozkyData();
+  const dphSazba = parseInt(document.getElementById('fak-dph-sazba').value);
+  const castka = polozky.reduce((s, p) => s + (p.mnozstvi || 1) * (p.cena || 0), 0);
+  const dph = castka * dphSazba / 100;
+  const celkem = castka + dph;
+
+  const body = {
+    id,
+    cislo: document.getElementById('fak-cislo').value,
+    typ: document.getElementById('fak-typ').value,
+    zakaznik: document.getElementById('fak-zakaznik').value,
+    ico: document.getElementById('fak-ico').value,
+    dic: document.getElementById('fak-dic').value,
+    vs: document.getElementById('fak-vs').value,
+    datum: document.getElementById('fak-datum').value,
+    splatnost: document.getElementById('fak-splatnost').value,
+    uhrada: document.getElementById('fak-uhrada').value,
+    objednavka: document.getElementById('fak-objednavka').value,
+    poznamka: document.getElementById('fak-poznamka').value,
+    dphSazba,
+    castka,
+    dph,
+    celkem,
+    polozky: JSON.stringify(polozky),
+    stav: editMode ? (selectedFaktura.stav || 'nova') : 'nova'
+  };
+
+  try {
+    const url = editMode ? API + '/faktury/' + id : API + '/faktury';
+    const method = editMode ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    toast(editMode ? 'Faktura aktualizovana' : 'Faktura vytvorena', 'success');
+    closeModal('modal-faktura');
+    await loadAll();
+    selectedFaktura = faktury.find(f => f.id === id);
+    if (selectedFaktura) renderFakturaDetail();
+  } catch (e) {
+    toast('Chyba: ' + e.message, 'error');
+  }
+}
+
+async function deleteFaktura(id) {
+  if (!confirm('Opravdu smazat tuto fakturu?')) return;
+  try {
+    await fetch(API + '/faktury/' + id, { method: 'DELETE' });
+    toast('Faktura smazana', 'success');
+    selectedFaktura = null;
+    document.getElementById('fak-detail').innerHTML = '<div class="empty-msg"><div class="icon">&#128196;</div>Vyberte fakturu ze seznamu</div>';
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+async function markPaid(id) {
+  try {
+    await fetch(API + '/faktury/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stav: 'zaplacena' })
+    });
+    toast('Faktura oznacena jako zaplacena', 'success');
+    await loadAll();
+    selectedFaktura = faktury.find(f => f.id === id);
+    if (selectedFaktura) renderFakturaDetail();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+async function exportIsdoc(id) {
+  try {
+    window.open(API + '/faktury/' + id + '/isdoc', '_blank');
+    toast('ISDOC export spusten', 'success');
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+function printFaktura() {
+  window.print();
+}
+
+// ===== POLOŽKY =====
+function addPolRow(data = {}) {
+  const row = document.createElement('div');
+  row.className = 'pol-row';
+  row.innerHTML = `
+    <input placeholder="Nazev polozky" value="${data.popis || ''}" class="pol-popis" oninput="calcPolTotals()">
+    <input type="number" placeholder="1" value="${data.mnozstvi || ''}" min="0" step="1" class="pol-mn" oninput="calcPolTotals()">
+    <input placeholder="ks" value="${data.jednotka || 'ks'}" class="pol-jed">
+    <input type="number" placeholder="0" value="${data.cena || ''}" min="0" step="0.01" class="pol-cena" oninput="calcPolTotals()">
+    <button class="btn-pol-del" onclick="this.parentElement.remove();calcPolTotals()">&times;</button>
+  `;
+  document.getElementById('pol-rows').appendChild(row);
+}
+
+function getPolozkyData() {
+  const rows = document.querySelectorAll('#pol-rows .pol-row');
+  const items = [];
+  rows.forEach(r => {
+    const popis = r.querySelector('.pol-popis').value;
+    const mnozstvi = parseFloat(r.querySelector('.pol-mn').value) || 1;
+    const jednotka = r.querySelector('.pol-jed').value || 'ks';
+    const cena = parseFloat(r.querySelector('.pol-cena').value) || 0;
+    if (popis || cena) items.push({ popis, mnozstvi, jednotka, cena });
+  });
+  return items;
+}
+
+function calcPolTotals() {
+  const items = getPolozkyData();
+  const zaklad = items.reduce((s, p) => s + (p.mnozstvi || 1) * (p.cena || 0), 0);
+  const sazba = parseInt(document.getElementById('fak-dph-sazba').value) || 21;
+  const dph = zaklad * sazba / 100;
+  document.getElementById('pol-totals').innerHTML = `
+    <span><span class="t-label">Zaklad: </span><span class="t-val">${fmt(zaklad)}</span></span>
+    <span><span class="t-label">DPH ${sazba}%: </span><span class="t-val">${fmt(dph)}</span></span>
+    <span><span class="t-label">Celkem: </span><span class="t-total">${fmt(zaklad + dph)}</span></span>
+  `;
+}
+
+// ===== ZÁLOHOVÉ FAKTURY =====
+function renderZalList() {
+  const search = (document.getElementById('zal-search').value || '').toLowerCase();
+  let list = zalohoveFaktury.filter(z => {
+    if (search && !(z.cislo || '').toLowerCase().includes(search) && !(z.zakaznik || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+  list.sort((a, b) => new Date(b.datum || b.createdAt || b.created_at || 0) - new Date(a.datum || a.createdAt || a.created_at || 0));
+  document.getElementById('zal-count').textContent = `${list.length} zalohovych faktur`;
+  document.getElementById('zal-list').innerHTML = list.map(z => {
+    const isActive = selectedZalohova && selectedZalohova.id === z.id ? 'active' : '';
+    return `<div class="item-card ${isActive}" onclick="selectZalohova('${z.id}')">
+      <div class="item-head">
+        <span class="item-num">${z.cislo || 'Bez cisla'}</span>
+        <span class="item-amount">${fmt(parseFloat(z.celkem || z.castka || 0))}</span>
+      </div>
+      <div class="item-sub">${z.zakaznik || '-'}</div>
+      <div class="item-meta"><span>${fmtDate(z.datum || z.createdAt || z.created_at)}</span></div>
+    </div>`;
+  }).join('') || '<div class="empty-msg">Zadne zalohove faktury</div>';
+}
+
+document.getElementById('zal-search').addEventListener('input', renderZalList);
+
+function selectZalohova(id) {
+  selectedZalohova = zalohoveFaktury.find(z => z.id === id);
+  if (!selectedZalohova) return;
+  renderZalList();
+  const z = selectedZalohova;
+  document.getElementById('zal-detail').innerHTML = `
+    <div class="detail-header"><h2>${z.cislo || 'Zalohova faktura'}</h2></div>
+    <div class="detail-grid">
+      <div class="dfield"><label>Zakaznik</label><span>${z.zakaznik || '-'}</span></div>
+      <div class="dfield"><label>Datum</label><span>${fmtDate(z.datum)}</span></div>
+      <div class="dfield"><label>Splatnost</label><span>${fmtDate(z.splatnost)}</span></div>
+      <div class="dfield"><label>Castka</label><span style="font-weight:700">${fmt(parseFloat(z.celkem || z.castka || 0))}</span></div>
+      ${z.popis ? `<div class="dfield full"><label>Popis</label><p>${z.popis}</p></div>` : ''}
+    </div>
+    <div class="detail-actions">
+      <button class="btn-action btn-del" onclick="deleteZalohova('${z.id}')">Smazat</button>
+    </div>
+  `;
+}
+
+async function newZalohovaFaktura() {
+  document.getElementById('modal-zal-title').textContent = 'Nova zalohova faktura';
+  document.getElementById('zal-id').value = '';
+  document.getElementById('zal-zakaznik').value = '';
+  document.getElementById('zal-castka').value = '';
+  document.getElementById('zal-celkem').value = '';
+  document.getElementById('zal-popis').value = '';
+  document.getElementById('zal-dph').value = '21';
+  const today = new Date().toISOString().split('T')[0];
+  const spl = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+  document.getElementById('zal-datum').value = today;
+  document.getElementById('zal-splatnost').value = spl;
+  try {
+    const res = await fetch(API + '/next-number/ZAL');
+    const data = await res.json();
+    document.getElementById('zal-cislo').value = data.cislo || '';
+  } catch { }
+  openModal('modal-zalohova');
+}
+
+function calcZalDph() {
+  const castka = parseFloat(document.getElementById('zal-castka').value) || 0;
+  const sazba = parseInt(document.getElementById('zal-dph').value) || 0;
+  document.getElementById('zal-celkem').value = (castka + castka * sazba / 100).toFixed(2);
+}
+
+async function saveZalohovaFaktura() {
+  const id = document.getElementById('zal-id').value || crypto.randomUUID();
+  const castka = parseFloat(document.getElementById('zal-castka').value) || 0;
+  const sazba = parseInt(document.getElementById('zal-dph').value) || 0;
+  const body = {
+    id,
+    cislo: document.getElementById('zal-cislo').value,
+    zakaznik: document.getElementById('zal-zakaznik').value,
+    castka,
+    dphSazba: sazba,
+    dph: castka * sazba / 100,
+    celkem: castka + castka * sazba / 100,
+    datum: document.getElementById('zal-datum').value,
+    splatnost: document.getElementById('zal-splatnost').value,
+    popis: document.getElementById('zal-popis').value
+  };
+  try {
+    await fetch(API + '/zalohove_faktury', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    toast('Zalohova faktura vytvorena', 'success');
+    closeModal('modal-zalohova');
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+async function deleteZalohova(id) {
+  if (!confirm('Smazat zalohovou fakturu?')) return;
+  try {
+    await fetch(API + '/zalohove_faktury/' + id, { method: 'DELETE' });
+    toast('Smazano', 'success');
+    selectedZalohova = null;
+    document.getElementById('zal-detail').innerHTML = '<div class="empty-msg"><div class="icon">&#128179;</div>Vyberte zalohovou fakturu</div>';
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+// ===== UNPAID TABLE =====
+function renderUnpaid() {
+  const unpaid = faktury.filter(f => getStav(f) !== 'zaplacena' && getStav(f) !== 'storno')
+    .sort((a, b) => daysOverdue(b.splatnost) - daysOverdue(a.splatnost));
+  document.getElementById('unpaid-tbody').innerHTML = unpaid.map(f => {
+    const days = daysOverdue(f.splatnost);
+    return `<tr${days > 0 ? ' style="background:#fff5f5"' : ''}>
+      <td><strong>${f.cislo || '-'}</strong></td>
+      <td>${f.zakaznik || '-'}</td>
+      <td>${f.vs || '-'}</td>
+      <td style="font-weight:600">${fmt(getCelkem(f))}</td>
+      <td>${fmtDate(f.splatnost)}</td>
+      <td${days > 0 ? ' style="color:var(--err);font-weight:700"' : ''}>${days > 0 ? days + ' dni' : '-'}</td>
+      <td><button class="btn-action btn-paid" style="padding:4px 10px;font-size:11px" onclick="markPaid('${f.id}')">Zaplaceno</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Vse zaplaceno</td></tr>';
+}
+
+// ===== FIO BANK =====
+async function checkFioPayments() {
+  const token = document.getElementById('fio-token').value;
+  if (!token) { toast('Zadejte FIO API token', 'error'); return; }
+  const container = document.getElementById('fio-results');
+  container.innerHTML = '<p style="color:var(--muted);font-size:13px"><span class="spinner" style="border-color:var(--border);border-top-color:var(--blue)"></span> Nacitani transakci...</p>';
+  try {
+    const res = await fetch(API + '/fio/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const txs = data.transactions || [];
+    if (txs.length === 0) {
+      container.innerHTML = '<p style="color:var(--muted);font-size:13px">Zadne nove transakce k parovani</p>';
+      return;
+    }
+    // Match with unpaid invoices
+    const unpaid = faktury.filter(f => getStav(f) !== 'zaplacena' && getStav(f) !== 'storno');
+    const matches = [];
+    container.innerHTML = `<h4 style="font-size:12px;font-weight:700;color:var(--navy);margin:12px 0 8px">Nalezeno ${txs.length} transakci</h4>`;
+    txs.forEach(tx => {
+      const matchedFak = unpaid.find(f => f.vs && tx.vs && String(f.vs) === String(tx.vs));
+      const cls = matchedFak ? 'matched' : '';
+      container.innerHTML += `<div class="fio-match ${cls}">
+        <div><strong>${tx.vs || '?'}</strong> — ${fmt(tx.amount)} — ${tx.counterparty || ''}</div>
+        ${matchedFak ? `<button class="btn-action btn-paid" style="padding:4px 10px;font-size:11px" onclick="matchFioPayment('${matchedFak.id}','${tx.vs}',${tx.amount})">Sparovat</button>` : '<span style="font-size:11px;color:var(--muted)">Bez shody</span>'}
+      </div>`;
+      if (matchedFak) matches.push({ fakturaId: matchedFak.id, vs: tx.vs, amount: tx.amount });
+    });
+    if (matches.length > 0) {
+      container.innerHTML += `<button class="btn-new" style="margin-top:12px" onclick="matchAllFio()">Sparovat vse (${matches.length})</button>`;
+      window._fioMatches = matches;
+    }
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--err);font-size:13px">Chyba: ${e.message}</p>`;
+  }
+}
+
+async function matchFioPayment(fakturaId, vs, amount) {
+  try {
+    await fetch(API + '/fio/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matches: [{ fakturaId, vs, amount }] })
+    });
+    toast('Platba sparovana', 'success');
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+async function matchAllFio() {
+  if (!window._fioMatches) return;
+  try {
+    await fetch(API + '/fio/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matches: window._fioMatches })
+    });
+    toast(`${window._fioMatches.length} plateb sparovano`, 'success');
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+// ===== CASH FLOW =====
+async function loadCashFlow() {
+  try {
+    const res = await fetch(API + '/cashflow');
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      let html = '<table class="cf-table"><thead><tr><th>Mesic</th><th>Prijmy</th><th>Vydaje</th><th>Bilance</th></tr></thead><tbody>';
+      data.forEach(m => {
+        const prijmy = parseFloat(m.prijmy || m.income || 0);
+        const vydaje = parseFloat(m.vydaje || m.expense || 0);
+        const bilance = prijmy - vydaje;
+        html += `<tr>
+          <td><strong>${m.mesic || m.month || '-'}</strong></td>
+          <td class="positive">${fmt(prijmy)}</td>
+          <td class="negative">${fmt(vydaje)}</td>
+          <td class="${bilance >= 0 ? 'positive' : 'negative'}" style="font-weight:700">${fmt(bilance)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('cf-container').innerHTML = html;
+    } else {
+      document.getElementById('cf-container').innerHTML = '<p style="color:var(--muted);font-size:13px">Nedostatek dat pro zobrazeni cash flow</p>';
+    }
+  } catch (e) {
+    document.getElementById('cf-container').innerHTML = '<p style="color:var(--muted);font-size:13px">Cash flow neni k dispozici</p>';
+  }
+}
+
+// ===== UPOMÍNKY =====
+function renderUpominky() {
+  document.getElementById('upominky-tbody').innerHTML = upominky.map(u => `<tr>
+    <td><strong>${u.cislo || '-'}</strong></td>
+    <td>${u.fakturaCislo || u.faktura_cislo || '-'}</td>
+    <td>${u.zakaznik || '-'}</td>
+    <td style="font-weight:600">${fmt(parseFloat(u.castka || 0))}</td>
+    <td>${u.poradi || '-'}. upominka</td>
+    <td>${fmtDate(u.datum || u.createdAt || u.created_at)}</td>
+  </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Zadne upominky</td></tr>';
+}
+
+async function generateUpominky() {
+  try {
+    const res = await fetch(API + '/upominky/generate', { method: 'POST' });
+    const data = await res.json();
+    toast('Upominky vygenerovany', 'success');
+    await loadAll();
+  } catch (e) { toast('Chyba: ' + e.message, 'error'); }
+}
+
+// ===== ZÁKAZNÍCI DATALIST =====
+function populateZakaznikList() {
+  const dl = document.getElementById('zakaznik-list');
+  dl.innerHTML = zakaznici.map(z => `<option value="${z.nazev || z.jmeno || ''}">`).join('');
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) m.classList.remove('open');
+  });
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>
